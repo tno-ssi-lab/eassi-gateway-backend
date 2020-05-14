@@ -1,24 +1,39 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { Organization } from './organization.entity';
+import { ConnectorsService } from 'src/connectors/connectors.service';
 
 @Injectable()
 export class OrganizationsService {
+  logger: Logger;
+
   constructor(
     @InjectRepository(Organization)
     private organizationsRepository: Repository<Organization>,
-  ) {}
+    private connectorsService: ConnectorsService,
+  ) {
+    this.logger = new Logger(Organization.name);
+  }
 
-  findAll() {
+  async findAll() {
     return this.organizationsRepository.find();
   }
 
-  createFromName(name: string) {
+  async findByIdentifier(uuid: string) {
+    const results = await this.organizationsRepository.find({ take: 1 });
+    return results[0];
+  }
+
+  async createFromName(name: string) {
+    this.logger.log(`Creating organization with name ${name}`);
     const organization = new Organization();
     organization.name = name;
     organization.sharedSecret = Organization.randomSecret();
-    return this.organizationsRepository.save(organization);
+    await this.organizationsRepository.save(organization);
+    await this.connectorsService.registerOrganization(organization);
+    this.logger.log(`Created organization (id: ${organization.id})`);
+    return organization;
   }
 }

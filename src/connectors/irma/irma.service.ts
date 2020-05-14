@@ -7,6 +7,7 @@ export class IrmaService implements ConnectorService {
   type = 'irma';
 
   async registerOrganization(organization: Organization) {
+    // We don't need to do anything for IRMA.
     return;
   }
 }
