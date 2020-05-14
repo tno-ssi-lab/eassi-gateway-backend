@@ -26,7 +26,10 @@ export class JolocomWallet extends BaseEntity {
   @Column({ update: false })
   password: string;
 
-  @OneToOne(() => Organization)
+  @OneToOne(
+    () => Organization,
+    organization => organization.jolocomWallet,
+  )
   @JoinColumn()
   organization: Organization;
 

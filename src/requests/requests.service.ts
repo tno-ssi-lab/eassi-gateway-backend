@@ -6,11 +6,11 @@ import { Organization } from 'src/organizations/organization.entity';
 import {
   CredentialVerifyRequest,
   CredentialVerifyRequestData,
-} from './credential-verify-request';
+} from './credential-verify-request.entity';
 import {
   CredentialIssueRequest,
   CredentialIssueRequestData,
-} from './credential-issue-request';
+} from './credential-issue-request.entity';
 
 export class InvalidRequestJWT extends Error {}
 
@@ -25,14 +25,15 @@ export class RequestsService {
       CredentialVerifyRequestData
     >(jwt);
 
-    return {
-      verifyRequest: new CredentialVerifyRequest(
-        request.iss,
-        request.type,
-        request.callbackUrl,
-      ),
-      verifier: requestor,
-    };
+    const verifyRequest = new CredentialVerifyRequest();
+
+    verifyRequest.requestor = requestor;
+    verifyRequest.type = request.type;
+    verifyRequest.callbackUrl = request.callbackUrl;
+
+    // TODO: Save to db
+
+    return verifyRequest;
   }
 
   async decodeIssueRequestToken(jwt: string) {
@@ -40,18 +41,19 @@ export class RequestsService {
       CredentialIssueRequestData
     >(jwt);
 
-    return {
-      issueRequest: new CredentialIssueRequest(
-        request.iss,
-        request.type,
-        request.data,
-        request.callbackUrl,
-      ),
-      issuer: requestor,
-    };
+    const issueRequest = new CredentialIssueRequest();
+
+    issueRequest.requestor = requestor;
+    issueRequest.type = request.type;
+    issueRequest.callbackUrl = request.callbackUrl;
+    issueRequest.data = request.data;
+
+    // TODO: Save to db
+
+    return issueRequest;
   }
 
-  async decodeAndVerifyJwt<T>(
+  async decodeAndVerifyJwt<T = unknown>(
     jwt: string,
   ): Promise<{ request: T; requestor: Organization }> {
     try {
@@ -80,7 +82,7 @@ export class RequestsService {
         throw new Error(`String returned '${request}'. Expecting json object`);
       }
 
-      return { request, requestor };
+      return { request: (request as unknown) as T, requestor };
     } catch (e) {
       throw new InvalidRequestJWT('Could not decode request JWT');
     }
