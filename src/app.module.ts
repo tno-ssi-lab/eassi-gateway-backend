@@ -6,7 +6,6 @@ import { AppService } from './app.service';
 
 import { WalletModule } from './wallet/wallet.module';
 import { OrganizationsModule } from './organizations/organizations.module';
-import { ConnectorsModule } from './connectors/connectors.module';
 import { RequestsModule } from './requests/requests.module';
 
 @Module({
@@ -19,7 +18,6 @@ import { RequestsModule } from './requests/requests.module';
     }),
     WalletModule,
     OrganizationsModule,
-    ConnectorsModule,
     RequestsModule,
   ],
   controllers: [AppController],
