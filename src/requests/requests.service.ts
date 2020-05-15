@@ -13,6 +13,7 @@ import {
 } from './credential-issue-request.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CredentialType } from 'src/types/credential-type.entity';
 
 export class InvalidRequestJWT extends Error {}
 
@@ -23,21 +24,24 @@ export class RequestsService {
   logger: Logger;
 
   constructor(
-    private organizationsService: OrganizationsService,
+    @InjectRepository(Organization)
+    private organizationsRepository: Repository<Organization>,
     @InjectRepository(CredentialIssueRequest)
-    private issueRequestRepository: Repository<CredentialIssueRequest>,
+    private issueRequestsRepository: Repository<CredentialIssueRequest>,
     @InjectRepository(CredentialVerifyRequest)
-    private verifyRequestRepository: Repository<CredentialVerifyRequest>,
+    private verifyRequestsRepository: Repository<CredentialVerifyRequest>,
+    @InjectRepository(CredentialType)
+    private typesRepository: Repository<CredentialType>,
   ) {
     this.logger = new Logger(RequestsService.name);
   }
 
   async findVerifyRequestByIdentifier(uuid: string) {
-    return this.verifyRequestRepository.findOne({ uuid });
+    return this.verifyRequestsRepository.findOne({ uuid });
   }
 
   async findIssueRequestByIdentifier(uuid: string) {
-    return this.issueRequestRepository.findOne({ uuid });
+    return this.issueRequestsRepository.findOne({ uuid });
   }
 
   async findVerifyRequestByRequestId(requestId: string) {
@@ -83,14 +87,18 @@ export class RequestsService {
       CredentialVerifyRequestData
     >(jwt);
 
+    const type = await this.typesRepository.findOneOrFail({
+      organization: requestor,
+      type: request.type,
+    });
+
     const verifyRequest = new CredentialVerifyRequest();
 
     verifyRequest.requestor = requestor;
-    verifyRequest.type = request.type;
+    verifyRequest.type = type;
     verifyRequest.callbackUrl = request.callbackUrl;
 
-    await this.verifyRequestRepository.save(verifyRequest);
-    return verifyRequest;
+    return this.verifyRequestsRepository.save(verifyRequest);
   }
 
   async decodeIssueRequestToken(jwt: string) {
@@ -98,15 +106,19 @@ export class RequestsService {
       CredentialIssueRequestData
     >(jwt);
 
+    const type = await this.typesRepository.findOneOrFail({
+      organization: requestor,
+      type: request.type,
+    });
+
     const issueRequest = new CredentialIssueRequest();
 
     issueRequest.requestor = requestor;
-    issueRequest.type = request.type;
+    issueRequest.type = type;
     issueRequest.callbackUrl = request.callbackUrl;
     issueRequest.data = request.data;
 
-    await this.issueRequestRepository.save(issueRequest);
-    return issueRequest;
+    return this.issueRequestsRepository.save(issueRequest);
   }
 
   async decodeAndVerifyJwt<T = unknown>(
@@ -123,13 +135,9 @@ export class RequestsService {
         );
       }
 
-      const requestor = await this.organizationsService.findByIdentifier(
-        decoded.iss,
-      );
-
-      if (!requestor) {
-        throw new Error(`Could not find requestor from: ${decoded.iss}`);
-      }
+      const requestor = await this.organizationsRepository.findOneOrFail({
+        uuid: decoded.iss,
+      });
 
       // Verify that jwt is signed by specified issuer
       const request = verify(jwt, requestor.sharedSecret, {

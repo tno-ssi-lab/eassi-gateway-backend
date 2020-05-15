@@ -10,6 +10,6 @@ import { ConnectorsModule } from 'src/connectors/connectors.module';
   imports: [TypeOrmModule.forFeature([Organization]), ConnectorsModule],
   controllers: [OrganizationsController],
   providers: [OrganizationsService],
-  exports: [OrganizationsService],
+  exports: [OrganizationsService, TypeOrmModule],
 })
 export class OrganizationsModule {}

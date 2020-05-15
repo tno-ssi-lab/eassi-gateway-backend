@@ -7,6 +7,7 @@ import {
 } from 'typeorm';
 import { CredentialRequest } from './credential-request.interface';
 import { Organization } from '../organizations/organization.entity';
+import { CredentialType } from 'src/types/credential-type.entity';
 
 export interface CredentialVerifyRequestData {
   iss: string;
@@ -22,8 +23,11 @@ export class CredentialVerifyRequest implements CredentialRequest {
   @Column()
   callbackUrl: string;
 
-  @Column()
-  type: string;
+  @ManyToOne(
+    () => CredentialType,
+    type => type.verifyRequests,
+  )
+  type: CredentialType;
 
   @Column()
   @Generated('uuid')

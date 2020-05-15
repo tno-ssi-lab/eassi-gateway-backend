@@ -1,5 +1,12 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  BaseEntity,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+} from 'typeorm';
 import { BaseMetadata } from 'cred-types-jolocom-core/js/types';
+import { CredentialType } from 'src/types/credential-type.entity';
 
 @Entity()
 export class JolocomCredentialType extends BaseEntity {
@@ -17,4 +24,10 @@ export class JolocomCredentialType extends BaseEntity {
 
   @Column('simple-json')
   claimInterface: BaseMetadata['claimInterface'];
+
+  @OneToMany(
+    () => CredentialType,
+    type => type.organization,
+  )
+  credentialTypes: CredentialType[];
 }

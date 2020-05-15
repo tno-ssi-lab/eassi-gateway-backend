@@ -18,7 +18,9 @@ export class JolocomService implements ConnectorService {
 
   constructor(
     @InjectRepository(JolocomWallet)
-    private walletRepository: Repository<JolocomWallet>,
+    private walletsRepository: Repository<JolocomWallet>,
+    @InjectRepository(JolocomCredentialType)
+    private typesRepository: Repository<JolocomCredentialType>,
   ) {
     this.registry = JolocomLib.registries.jolocom.create();
     this.logger = new Logger(JolocomService.name);
@@ -34,6 +36,20 @@ export class JolocomService implements ConnectorService {
 
   /* JolocomService specific */
 
+  async findAllTypes() {
+    return this.typesRepository.find();
+  }
+
+  async createType(typeData) {
+    const type = new JolocomCredentialType();
+    type.type = typeData.type;
+    type.name = typeData.name;
+    type.claimInterface = typeData.claimInterface;
+    type.context = typeData.context;
+
+    return this.typesRepository.save(type);
+  }
+
   async createWalletForOrganization(organization: Organization) {
     this.logger.debug(`Creating wallet for ${organization.name}`);
     const seed = JolocomWallet.randomSeed();
@@ -45,7 +61,7 @@ export class JolocomService implements ConnectorService {
     wallet.password = password;
     wallet.encryptedSeedHex = keyProvider.encryptedSeed; // Already in hex format
 
-    await this.walletRepository.save(wallet);
+    await this.walletsRepository.save(wallet);
     this.logger.debug(`Created wallet for ${organization.name}`);
     return wallet;
   }

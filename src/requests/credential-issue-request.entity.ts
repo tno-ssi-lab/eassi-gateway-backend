@@ -7,6 +7,7 @@ import {
 } from 'typeorm';
 import { CredentialRequest } from './credential-request.interface';
 import { Organization } from '../organizations/organization.entity';
+import { CredentialType } from 'src/types/credential-type.entity';
 
 interface CredentialData {
   [key: string]: string | number | boolean | null;
@@ -27,8 +28,11 @@ export class CredentialIssueRequest implements CredentialRequest {
   @Column()
   callbackUrl: string;
 
-  @Column()
-  type: string;
+  @ManyToOne(
+    () => CredentialType,
+    type => type.issueRequests,
+  )
+  type: CredentialType;
 
   @Column()
   @Generated('uuid')
