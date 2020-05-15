@@ -3,22 +3,17 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-
-import { WalletModule } from './wallet/wallet.module';
-import { OrganizationsModule } from './organizations/organizations.module';
-import { RequestsModule } from './requests/requests.module';
+import { IssueModule } from './issue/issue.module';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'sqlite',
-      database: './dev.sqlite3',
+      database: '/data/dev.sqlite3',
       synchronize: true,
       autoLoadEntities: true,
     }),
-    WalletModule,
-    OrganizationsModule,
-    RequestsModule,
+    IssueModule,
   ],
   controllers: [AppController],
   providers: [AppService],
