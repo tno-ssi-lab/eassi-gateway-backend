@@ -33,12 +33,6 @@ export class JolocomWallet extends BaseEntity {
   @JoinColumn()
   organization: Organization;
 
-  @OneToMany(
-    () => JolocomCredentialType,
-    credentialOffer => credentialOffer.wallet,
-  )
-  credentialOffers: JolocomCredentialType[];
-
   static randomPassword() {
     return randomBytes(JOLOCOM_WALLET_PASSWORD_BYTES).toString('hex');
   }
