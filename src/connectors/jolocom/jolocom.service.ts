@@ -32,6 +32,8 @@ export class JolocomService implements ConnectorService {
     await this.registerWallet(wallet);
   }
 
+  /* JolocomService specific */
+
   async createWalletForOrganization(organization: Organization) {
     this.logger.log(`Creating wallet for ${organization.name}`);
     const seed = JolocomWallet.randomSeed();
