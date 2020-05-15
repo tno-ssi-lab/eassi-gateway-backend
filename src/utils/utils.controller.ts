@@ -12,8 +12,9 @@ export class UtilsController {
   @Post('jwt/:organizationId')
   async generateJwt(
     @Param('organizationId') organizationId: string,
-    @Body() body: object,
+    @Body() body: string | object,
   ) {
+    // TODO: move into utilsService
     const organization = await this.organizationsService.find(organizationId);
     const jwt = this.utilsService.createSignedJwt(body, organization);
     return jwt;
