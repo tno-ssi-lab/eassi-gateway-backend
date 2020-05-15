@@ -22,8 +22,9 @@ export class OrganizationsService {
   }
 
   async findByIdentifier(uuid: string) {
-    const results = await this.organizationsRepository.find({ take: 1 });
-    return results[0];
+    return this.organizationsRepository.findOne({
+      uuid,
+    });
   }
 
   async createFromName(name: string) {
@@ -32,7 +33,10 @@ export class OrganizationsService {
     organization.name = name;
     organization.sharedSecret = Organization.randomSecret();
     await this.organizationsRepository.save(organization);
+
+    // TODO: Move to queue if needed.
     await this.connectorsService.registerOrganization(organization);
+
     this.logger.log(`Created organization (id: ${organization.id})`);
     return organization;
   }

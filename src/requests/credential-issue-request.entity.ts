@@ -43,8 +43,14 @@ export class CredentialIssueRequest implements CredentialRequest {
   )
   requestor: Organization;
 
+  static requestType: 'credential-issue-request';
+
   get requestId() {
-    return `credential-issue-request:${this.uuid}`;
+    return `${CredentialIssueRequest.requestType}:${this.uuid}`;
+  }
+
+  get iss() {
+    return this.requestor?.uuid;
   }
 
   get issuer() {

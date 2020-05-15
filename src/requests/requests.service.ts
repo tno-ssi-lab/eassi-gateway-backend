@@ -11,6 +11,8 @@ import {
   CredentialIssueRequest,
   CredentialIssueRequestData,
 } from './credential-issue-request.entity';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 export class InvalidRequestJWT extends Error {}
 
@@ -18,7 +20,59 @@ const JWT_MAX_AGE = '300s';
 
 @Injectable()
 export class RequestsService {
-  constructor(private organizationsService: OrganizationsService) {}
+  constructor(
+    private organizationsService: OrganizationsService,
+    @InjectRepository(CredentialIssueRequest)
+    private issueRequestRepository: Repository<CredentialIssueRequest>,
+    @InjectRepository(CredentialVerifyRequest)
+    private verifyRequestRepository: Repository<CredentialVerifyRequest>,
+  ) {}
+
+  async findVerifyRequestByIdentifier(uuid: string) {
+    return this.verifyRequestRepository.findOne({ uuid });
+  }
+
+  async findIssueRequestByIdentifier(uuid: string) {
+    return this.issueRequestRepository.findOne({ uuid });
+  }
+
+  async findVerifyRequestByRequestId(requestId: string) {
+    const [type, uuid] = requestId.split(':');
+
+    if (type !== CredentialVerifyRequest.requestType || !uuid) {
+      return null;
+    }
+
+    return this.findVerifyRequestByIdentifier(uuid);
+  }
+
+  async findIssueRequestByRequestId(requestId: string) {
+    const [type, uuid] = requestId.split(':');
+
+    if (type !== CredentialIssueRequest.requestType || !uuid) {
+      return null;
+    }
+
+    return this.findIssueRequestByIdentifier(uuid);
+  }
+
+  async findRequestByRequestId(requestId: string) {
+    const [type, uuid] = requestId.split(':');
+
+    if (!type || !uuid) {
+      return null;
+    }
+
+    if (type === CredentialVerifyRequest.requestType) {
+      return this.findVerifyRequestByIdentifier(uuid);
+    }
+
+    if (type === CredentialIssueRequest.requestType) {
+      return this.findIssueRequestByIdentifier(uuid);
+    }
+
+    return null;
+  }
 
   async decodeVerifyRequestToken(jwt: string) {
     const { request, requestor } = await this.decodeAndVerifyJwt<
@@ -31,8 +85,7 @@ export class RequestsService {
     verifyRequest.type = request.type;
     verifyRequest.callbackUrl = request.callbackUrl;
 
-    // TODO: Save to db
-
+    await this.verifyRequestRepository.save(verifyRequest);
     return verifyRequest;
   }
 
@@ -48,8 +101,7 @@ export class RequestsService {
     issueRequest.callbackUrl = request.callbackUrl;
     issueRequest.data = request.data;
 
-    // TODO: Save to db
-
+    await this.issueRequestRepository.save(issueRequest);
     return issueRequest;
   }
 
@@ -82,6 +134,10 @@ export class RequestsService {
         throw new Error(`String returned '${request}'. Expecting json object`);
       }
 
+      // This is an unsafe casting that creates a runtime exception if the
+      // casting fails. A more robust solution would be to use the
+      // class-transformer and class-validator libraries to make sure the object
+      // is valid.
       return { request: (request as unknown) as T, requestor };
     } catch (e) {
       throw new InvalidRequestJWT('Could not decode request JWT');

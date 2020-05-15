@@ -4,6 +4,7 @@ import {
   Column,
   OneToOne,
   OneToMany,
+  Generated,
 } from 'typeorm';
 import { randomBytes } from 'crypto';
 import { JolocomWallet } from '../connectors/jolocom/jolocom-wallet.entity';
@@ -22,6 +23,10 @@ export class Organization {
 
   @Column()
   sharedSecret: string;
+
+  @Column()
+  @Generated('uuid')
+  uuid: string;
 
   @OneToOne(
     () => JolocomWallet,

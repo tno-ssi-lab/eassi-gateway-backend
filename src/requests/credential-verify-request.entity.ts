@@ -35,8 +35,14 @@ export class CredentialVerifyRequest implements CredentialRequest {
   )
   requestor: Organization;
 
+  static requestType: 'credential-verify-request';
+
   get requestId() {
-    return `credential-verify-request:${this.uuid}`;
+    return `${CredentialVerifyRequest.requestType}:${this.uuid}`;
+  }
+
+  get iss() {
+    return this.requestor?.uuid;
   }
 
   get verifier() {
