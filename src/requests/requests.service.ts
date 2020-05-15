@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { decode, verify } from 'jsonwebtoken';
 
 import { OrganizationsService } from 'src/organizations/organizations.service';
@@ -20,13 +20,17 @@ const JWT_MAX_AGE = '300s';
 
 @Injectable()
 export class RequestsService {
+  logger: Logger;
+
   constructor(
     private organizationsService: OrganizationsService,
     @InjectRepository(CredentialIssueRequest)
     private issueRequestRepository: Repository<CredentialIssueRequest>,
     @InjectRepository(CredentialVerifyRequest)
     private verifyRequestRepository: Repository<CredentialVerifyRequest>,
-  ) {}
+  ) {
+    this.logger = new Logger(RequestsService.name);
+  }
 
   async findVerifyRequestByIdentifier(uuid: string) {
     return this.verifyRequestRepository.findOne({ uuid });
@@ -114,7 +118,9 @@ export class RequestsService {
 
       // Check if issuer is set
       if (!decoded || !decoded.iss) {
-        throw new Error('Could not decode issuer');
+        throw new Error(
+          `Could not decode issuer from: ${JSON.stringify(decoded)}`,
+        );
       }
 
       const requestor = await this.organizationsService.findByIdentifier(
@@ -122,7 +128,7 @@ export class RequestsService {
       );
 
       if (!requestor) {
-        throw new Error('Could not find requestor');
+        throw new Error(`Could not find requestor from: ${decoded.iss}`);
       }
 
       // Verify that jwt is signed by specified issuer
@@ -140,6 +146,7 @@ export class RequestsService {
       // is valid.
       return { request: (request as unknown) as T, requestor };
     } catch (e) {
+      this.logger.error(`Received error during JWT decoding: ${e}`);
       throw new InvalidRequestJWT('Could not decode request JWT');
     }
   }

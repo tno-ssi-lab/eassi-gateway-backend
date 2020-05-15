@@ -35,7 +35,7 @@ export class JolocomService implements ConnectorService {
   /* JolocomService specific */
 
   async createWalletForOrganization(organization: Organization) {
-    this.logger.log(`Creating wallet for ${organization.name}`);
+    this.logger.debug(`Creating wallet for ${organization.name}`);
     const seed = JolocomWallet.randomSeed();
     const password = JolocomWallet.randomPassword();
     const keyProvider = JolocomLib.KeyProvider.fromSeed(seed, password);
@@ -46,18 +46,18 @@ export class JolocomService implements ConnectorService {
     wallet.encryptedSeedHex = keyProvider.encryptedSeed; // Already in hex format
 
     await this.walletRepository.save(wallet);
-    this.logger.log(`Created wallet for ${organization.name}`);
+    this.logger.debug(`Created wallet for ${organization.name}`);
     return wallet;
   }
 
   async registerWallet(wallet: JolocomWallet) {
-    this.logger.log(`Wallet registration started`);
+    this.logger.debug(`Wallet registration started`);
     const keyProvider = this.getKeyProvider(wallet);
     const identityWallet = await this.registry.create(
       keyProvider,
       wallet.password,
     );
-    this.logger.log(`Wallet registration successful`);
+    this.logger.debug(`Wallet registration successful`);
 
     // TODO: Maybe we shouldn't return here.
     return identityWallet;
@@ -73,10 +73,10 @@ export class JolocomService implements ConnectorService {
   }
 
   async fuelWallet(wallet: JolocomWallet) {
-    this.logger.log(`Wallet fueling started`);
+    this.logger.debug(`Wallet fueling started`);
     const publicEthKey = this.getPublicEthKey(wallet);
     await JolocomLib.util.fuelKeyWithEther(publicEthKey);
-    this.logger.log(`Wallet fueling started`);
+    this.logger.debug(`Wallet fueling started`);
   }
 
   getPublicEthKey(wallet: JolocomWallet) {
@@ -103,7 +103,7 @@ export class JolocomService implements ConnectorService {
   //     requestId: request.requestId,
   //     qr: await QRCode.toDataURL(token),
   //   };
-  //   console.log('Jolocom CredentialOfferToken: ', credOffer.encode());
+  //   console.debug('Jolocom CredentialOfferToken: ', credOffer.encode());
 
   //   return response.render('jolocom/issue', viewData);
   // }
