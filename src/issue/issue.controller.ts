@@ -1,18 +1,37 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Query, Param } from '@nestjs/common';
 
+import {
+  DecodeIssueRequestPipe,
+  GetIssueRequestPipe,
+} from '../requests/requests.pipe';
+import { CredentialIssueRequest } from '../requests/credential-issue-request.entity';
+import { ConnectorsService } from '../connectors/connectors.service';
 import { GetConnectorPipe } from '../connectors/get-connector.pipe';
 import { ConnectorService } from '../connectors/connector-service.interface';
-import { GetIssueRequestPipe } from '../requests/get-request.pipe';
-import { CredentialIssueRequest } from '../requests/credential-issue-request.entity';
 
-@Controller('issue')
+@Controller('api/issue')
 export class IssueController {
-  @Get(':connector')
+  constructor(private connectorsService: ConnectorsService) {}
+
+  @Get()
   async receiveCredentialIssueRequest(
-    @Param('connector', GetConnectorPipe) connectorService: ConnectorService,
-    @Query('token', GetIssueRequestPipe)
+    @Query('token', DecodeIssueRequestPipe)
     issueRequest: CredentialIssueRequest,
   ) {
-    return issueRequest;
+    return {
+      issueRequest,
+      availableConnectors: await this.connectorsService
+        .availableIssueConnectors(issueRequest)
+        .then(cs => cs.map(c => c.type)),
+    };
+  }
+
+  @Get(':connector')
+  async handleCredentialVerifyRequest(
+    @Param('connector', GetConnectorPipe) connectorService: ConnectorService,
+    @Query('issueRequestId', GetIssueRequestPipe)
+    issueRequest: CredentialIssueRequest,
+  ) {
+    return { issueRequest, connectorService };
   }
 }

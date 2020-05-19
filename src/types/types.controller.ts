@@ -2,7 +2,7 @@ import { Controller, Post, Body, Get } from '@nestjs/common';
 import { TypesService } from './types.service';
 import { CreateTypeDto } from './create-type.dto';
 
-@Controller('types')
+@Controller('api/types')
 export class TypesController {
   constructor(private typesService: TypesService) {}
   @Get()

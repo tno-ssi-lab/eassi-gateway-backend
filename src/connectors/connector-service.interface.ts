@@ -1,4 +1,6 @@
 import { Organization } from 'src/organizations/organization.entity';
+import { CredentialIssueRequest } from 'src/requests/credential-issue-request.entity';
+import { CredentialVerifyRequest } from 'src/requests/credential-verify-request.entity';
 
 /**
  * Interface describing a Connector that can be used by the SSI-service
@@ -12,6 +14,30 @@ export interface ConnectorService {
    * Other implementations might require other initialization steps
    */
   registerOrganization(org: Organization): Promise<void>;
+
+  /**
+   * Check if the connector can issue a credential for this request.
+   */
+  canIssueCredentialRequest(
+    request: CredentialIssueRequest,
+  ): Promise<boolean> | boolean;
+
+  /**
+   * Check if the connector can verify a credential for this request.
+   */
+  canVerifyCredentialRequest(
+    request: CredentialVerifyRequest,
+  ): Promise<boolean> | boolean;
+
+  /**
+   * Handle fullfillment of a issue request.
+   */
+  handleIssueCredentialRequest(request: CredentialIssueRequest): Promise<any>;
+
+  /**
+   * Handle fullfillment of a verify request.
+   */
+  handleVerifyCredentialRequest(request: CredentialIssueRequest): Promise<any>;
 
   // registerRoutes(root: string, app: Express): void;
 

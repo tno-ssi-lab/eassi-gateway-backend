@@ -7,7 +7,13 @@ import { TypesModule } from 'src/types/types.module';
 import { CredentialIssueRequest } from './credential-issue-request.entity';
 import { CredentialVerifyRequest } from './credential-verify-request.entity';
 import { RequestsService } from './requests.service';
-import { GetIssueRequestPipe, GetVerifyRequestPipe } from './get-request.pipe';
+import {
+  DecodeIssueRequestPipe,
+  DecodeVerifyRequestPipe,
+  GetIssueRequestPipe,
+  GetVerifyRequestPipe,
+} from './requests.pipe';
+import { RequestsGateway } from './requests.gateway';
 
 @Module({
   imports: [
@@ -15,7 +21,21 @@ import { GetIssueRequestPipe, GetVerifyRequestPipe } from './get-request.pipe';
     OrganizationsModule,
     TypesModule,
   ],
-  providers: [RequestsService, GetIssueRequestPipe, GetVerifyRequestPipe],
-  exports: [RequestsService, GetIssueRequestPipe, GetVerifyRequestPipe],
+  providers: [
+    RequestsService,
+    DecodeIssueRequestPipe,
+    GetIssueRequestPipe,
+    DecodeVerifyRequestPipe,
+    GetVerifyRequestPipe,
+    RequestsGateway,
+  ],
+  exports: [
+    RequestsService,
+    DecodeIssueRequestPipe,
+    GetIssueRequestPipe,
+    DecodeVerifyRequestPipe,
+    GetVerifyRequestPipe,
+    RequestsGateway,
+  ],
 })
 export class RequestsModule {}

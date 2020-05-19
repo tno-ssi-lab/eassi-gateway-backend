@@ -2,7 +2,7 @@ import { Controller, Post, Body, Param } from '@nestjs/common';
 import { OrganizationsService } from 'src/organizations/organizations.service';
 import { UtilsService } from './utils.service';
 
-@Controller('utils')
+@Controller('api/utils')
 export class UtilsController {
   constructor(
     private organizationsService: OrganizationsService,

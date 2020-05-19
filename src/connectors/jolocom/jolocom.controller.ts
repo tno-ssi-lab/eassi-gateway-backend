@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body } from '@nestjs/common';
 import { JolocomService } from './jolocom.service';
 import { CreateJolocomTypeDto } from './create-jolocom-type.dto';
 
-@Controller('connectors/jolocom')
+@Controller('api/connectors/jolocom')
 export class JolocomController {
   constructor(private jolocomService: JolocomService) {}
 

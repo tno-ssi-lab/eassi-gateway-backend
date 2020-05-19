@@ -8,6 +8,8 @@ import { ConnectorService } from '../connector-service.interface';
 import { Organization } from '../../organizations/organization.entity';
 import { JolocomWallet } from './jolocom-wallet.entity';
 import { JolocomCredentialType } from './jolocom-credential-type.entity';
+import { CredentialIssueRequest } from 'src/requests/credential-issue-request.entity';
+import { CredentialVerifyRequest } from 'src/requests/credential-verify-request.entity';
 
 @Injectable()
 export class JolocomService implements ConnectorService {
@@ -34,7 +36,33 @@ export class JolocomService implements ConnectorService {
     await this.registerWallet(wallet);
   }
 
+  canIssueCredentialRequest(request: CredentialIssueRequest) {
+    if (!request.type) {
+      throw Error('Could not check type');
+    }
+
+    return !!request.type.jolocomType;
+  }
+
+  canVerifyCredentialRequest(request: CredentialVerifyRequest) {
+    if (!request.type) {
+      throw Error('Could not check type');
+    }
+
+    return !!request.type.jolocomType;
+  }
+
+  async handleIssueCredentialRequest(request: CredentialIssueRequest) {
+    return null;
+  }
+
+  async handleVerifyCredentialRequest(request: CredentialIssueRequest) {
+    return null;
+  }
+
   /* JolocomService specific */
+
+  /* JolocomCredentialType methods */
 
   async findAllTypes() {
     return this.typesRepository.find();

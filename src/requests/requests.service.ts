@@ -87,10 +87,15 @@ export class RequestsService {
       CredentialVerifyRequestData
     >(jwt);
 
-    const type = await this.typesRepository.findOneOrFail({
-      organization: requestor,
-      type: request.type,
-    });
+    const type = await this.typesRepository.findOneOrFail(
+      {
+        organization: requestor,
+        type: request.type,
+      },
+      {
+        relations: ['jolocomType'],
+      },
+    );
 
     const verifyRequest = new CredentialVerifyRequest();
 
@@ -106,10 +111,15 @@ export class RequestsService {
       CredentialIssueRequestData
     >(jwt);
 
-    const type = await this.typesRepository.findOneOrFail({
-      organization: requestor,
-      type: request.type,
-    });
+    const type = await this.typesRepository.findOneOrFail(
+      {
+        organization: requestor,
+        type: request.type,
+      },
+      {
+        relations: ['jolocomType'],
+      },
+    );
 
     const issueRequest = new CredentialIssueRequest();
 

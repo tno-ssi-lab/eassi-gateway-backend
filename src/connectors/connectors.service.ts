@@ -3,6 +3,8 @@ import { JolocomService } from './jolocom/jolocom.service';
 import { IrmaService } from './irma/irma.service';
 import { ConnectorService } from './connector-service.interface';
 import { Organization } from '../organizations/organization.entity';
+import { CredentialIssueRequest } from 'src/requests/credential-issue-request.entity';
+import { CredentialVerifyRequest } from 'src/requests/credential-verify-request.entity';
 
 @Injectable()
 export class ConnectorsService {
@@ -26,5 +28,29 @@ export class ConnectorsService {
         async connector => await connector.registerOrganization(organization),
       ),
     );
+  }
+
+  async availableIssueConnectors(request: CredentialIssueRequest) {
+    const results = await Promise.all(
+      this.connectors.map(async connector => {
+        return {
+          connector,
+          available: await connector.canIssueCredentialRequest(request),
+        };
+      }),
+    );
+    return results.filter(r => r.available).map(r => r.connector);
+  }
+
+  async availableVerifyConnectors(request: CredentialVerifyRequest) {
+    const results = await Promise.all(
+      this.connectors.map(async connector => {
+        return {
+          connector,
+          available: await connector.canVerifyCredentialRequest(request),
+        };
+      }),
+    );
+    return results.filter(r => r.available).map(r => r.connector);
   }
 }
