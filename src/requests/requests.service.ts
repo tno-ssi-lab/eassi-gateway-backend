@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { decode, verify } from 'jsonwebtoken';
+import { decode, verify, sign, SignOptions } from 'jsonwebtoken';
 
-import { OrganizationsService } from 'src/organizations/organizations.service';
 import { Organization } from 'src/organizations/organization.entity';
 import {
   CredentialVerifyRequest,
@@ -14,6 +13,7 @@ import {
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CredentialType } from 'src/types/credential-type.entity';
+import { ResponseStatus } from 'src/connectors/response-status.enum';
 
 export class InvalidRequestJWT extends Error {}
 
@@ -47,7 +47,10 @@ export class RequestsService {
   async findVerifyRequestByRequestId(requestId: string) {
     const [type, uuid] = requestId.split(':');
 
+    console.log(type, CredentialVerifyRequest.requestType, uuid);
+
     if (type !== CredentialVerifyRequest.requestType || !uuid) {
+      console.log(type !== CredentialVerifyRequest.requestType, !uuid);
       return null;
     }
 
@@ -83,6 +86,7 @@ export class RequestsService {
   }
 
   async decodeVerifyRequestToken(jwt: string) {
+    // TODO: verify sub(ject)
     const { request, requestor } = await this.decodeAndVerifyJwt<
       CredentialVerifyRequestData
     >(jwt);
@@ -97,6 +101,8 @@ export class RequestsService {
       },
     );
 
+    // TODO: load from db if request already exists.
+
     const verifyRequest = new CredentialVerifyRequest();
 
     verifyRequest.requestor = requestor;
@@ -107,6 +113,8 @@ export class RequestsService {
   }
 
   async decodeIssueRequestToken(jwt: string) {
+    // TODO: verify sub(ject)
+
     const { request, requestor } = await this.decodeAndVerifyJwt<
       CredentialIssueRequestData
     >(jwt);
@@ -120,6 +128,8 @@ export class RequestsService {
         relations: ['jolocomType'],
       },
     );
+
+    // TODO: load from db if request already exists.
 
     const issueRequest = new CredentialIssueRequest();
 
@@ -167,5 +177,57 @@ export class RequestsService {
       this.logger.error(`Received error during JWT decoding: ${e}`);
       throw new InvalidRequestJWT('Could not decode request JWT');
     }
+  }
+
+  encodeVerifyRequestResponse(
+    verifyRequest: CredentialVerifyRequest,
+    status: ResponseStatus,
+    connectorName: string,
+    data: any,
+  ) {
+    return this.encodeResponse(
+      {
+        requestId: verifyRequest.uuid, // TODO: use jwtid from request
+        type: verifyRequest.type.type,
+        status,
+        connector: connectorName,
+        data,
+      },
+      verifyRequest.verifier,
+      {
+        subject: 'credential-verify-response',
+      },
+    );
+  }
+
+  encodeIssueRequestResponse(
+    issueRequest: CredentialIssueRequest,
+    status: ResponseStatus,
+    connectorName: string,
+  ) {
+    return this.encodeResponse(
+      {
+        requestId: issueRequest.uuid, // TODO: use jwtid from request
+        type: issueRequest.type.type,
+        status,
+        connector: connectorName,
+      },
+      issueRequest.issuer,
+      {
+        subject: 'credential-issue-response',
+      },
+    );
+  }
+
+  encodeResponse(
+    payload: any,
+    organization: Organization,
+    options: SignOptions = {},
+  ) {
+    return sign(payload, organization.sharedSecret, {
+      issuer: 'ssi-service-provider', // TODO Get from config?
+      audience: organization.uuid,
+      ...options,
+    });
   }
 }

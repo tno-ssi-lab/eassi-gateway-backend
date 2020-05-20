@@ -31,6 +31,9 @@ export class CredentialIssueRequest implements CredentialRequest {
   @ManyToOne(
     () => CredentialType,
     type => type.issueRequests,
+    {
+      eager: true,
+    },
   )
   type: CredentialType;
 
@@ -44,10 +47,13 @@ export class CredentialIssueRequest implements CredentialRequest {
   @ManyToOne(
     () => Organization,
     organization => organization.issueRequests,
+    {
+      eager: true,
+    },
   )
   requestor: Organization;
 
-  static requestType: 'credential-issue-request';
+  static requestType: string;
 
   get requestId() {
     return `${CredentialIssueRequest.requestType}:${this.uuid}`;
@@ -65,3 +71,7 @@ export class CredentialIssueRequest implements CredentialRequest {
     this.requestor = issuer;
   }
 }
+
+// This was moved outside the class definition, because TypeScript didn't emit
+// the property into JS.
+CredentialIssueRequest.requestType = 'credential-issue-request';

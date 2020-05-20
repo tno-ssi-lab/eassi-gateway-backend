@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query, Post, Body } from '@nestjs/common';
 
 import { GetConnectorPipe } from '../connectors/get-connector.pipe';
 import { ConnectorService } from '../connectors/connector-service.interface';
@@ -10,12 +10,17 @@ import {
 } from '../requests/requests.pipe';
 import { CredentialVerifyRequest } from '../requests/credential-verify-request.entity';
 import { RequestsGateway } from '../requests/requests.gateway';
+import { IrmaService } from 'src/connectors/irma/irma.service';
+import { RequestsService } from 'src/requests/requests.service';
+import { ResponseStatus } from 'src/connectors/response-status.enum';
 
 @Controller('api/verify')
 export class VerifyController {
   constructor(
     private gateway: RequestsGateway,
     private connectorsService: ConnectorsService,
+    private irmaService: IrmaService,
+    private requestsService: RequestsService,
   ) {
     console.log(this.gateway);
   }
@@ -39,6 +44,40 @@ export class VerifyController {
     @Query('verifyRequestId', GetVerifyRequestPipe)
     verifyRequest: CredentialVerifyRequest,
   ) {
-    return { verifyRequest, connectorService };
+    console.log(verifyRequest, connectorService);
+    return connectorService.handleVerifyCredentialRequest(verifyRequest);
+  }
+
+  @Post('irma/disclose')
+  handleIrmaVerifyDisclosure(
+    @Query('verifyRequestId', GetVerifyRequestPipe)
+    verifyRequest: CredentialVerifyRequest,
+    @Body('jwt')
+    irmaJwt: string,
+  ) {
+    try {
+      const result = this.irmaService.validateIrmaDisclosure(
+        verifyRequest,
+        irmaJwt,
+      );
+
+      const responseToken = this.requestsService.encodeVerifyRequestResponse(
+        verifyRequest,
+        ResponseStatus.success,
+        'irma',
+        result,
+      );
+
+      this.gateway.sendRedirectResponse(
+        verifyRequest.requestId,
+        ResponseStatus.success,
+        new URL(
+          `?response=${responseToken}`,
+          verifyRequest.callbackUrl,
+        ).toString(),
+      );
+    } catch {
+      // TODO: handle bad flow
+    }
   }
 }

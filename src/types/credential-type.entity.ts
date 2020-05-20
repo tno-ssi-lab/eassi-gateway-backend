@@ -29,6 +29,7 @@ export class CredentialType {
     credentialType => credentialType.credentialTypes,
     {
       nullable: true,
+      eager: true,
     },
   )
   jolocomType: JolocomCredentialType;

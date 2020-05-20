@@ -30,14 +30,22 @@ export interface ConnectorService {
   ): Promise<boolean> | boolean;
 
   /**
-   * Handle fullfillment of a issue request.
+   * Handle fullfillment of a issue request. This method should perform the
+   * proper setup for actually issueing credentials to the wallet app for this
+   * connector.
+   *
+   * @returns All data needed for the front-end to set up a issuing session.
    */
   handleIssueCredentialRequest(request: CredentialIssueRequest): Promise<any>;
 
   /**
-   * Handle fullfillment of a verify request.
+   * Handle fullfillment of a verify request. This method should perform the
+   * proper setup for actually verifying credentials to the wallet app for this
+   * connector.
+   *
+   * @returns All data needed for the front-end to set up a verifying session.
    */
-  handleVerifyCredentialRequest(request: CredentialIssueRequest): Promise<any>;
+  handleVerifyCredentialRequest(request: CredentialVerifyRequest): Promise<any>;
 
   // registerRoutes(root: string, app: Express): void;
 

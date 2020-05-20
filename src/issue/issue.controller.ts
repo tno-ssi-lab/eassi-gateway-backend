@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Param } from '@nestjs/common';
+import { Controller, Get, Query, Param, Post } from '@nestjs/common';
 
 import {
   DecodeIssueRequestPipe,
@@ -27,11 +27,11 @@ export class IssueController {
   }
 
   @Get(':connector')
-  async handleCredentialVerifyRequest(
+  async handleCredentialIssueRequest(
     @Param('connector', GetConnectorPipe) connectorService: ConnectorService,
     @Query('issueRequestId', GetIssueRequestPipe)
     issueRequest: CredentialIssueRequest,
   ) {
-    return { issueRequest, connectorService };
+    return connectorService.handleIssueCredentialRequest(issueRequest);
   }
 }

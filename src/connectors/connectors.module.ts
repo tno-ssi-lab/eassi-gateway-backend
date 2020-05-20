@@ -8,6 +8,6 @@ import { GetConnectorPipe } from './get-connector.pipe';
 @Module({
   imports: [JolocomModule, IrmaModule],
   providers: [ConnectorsService, GetConnectorPipe],
-  exports: [ConnectorsService, GetConnectorPipe],
+  exports: [ConnectorsService, GetConnectorPipe, JolocomModule, IrmaModule],
 })
 export class ConnectorsModule {}
