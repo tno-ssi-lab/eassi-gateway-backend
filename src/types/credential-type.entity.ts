@@ -34,6 +34,7 @@ export class CredentialType {
   )
   jolocomType: JolocomCredentialType;
 
+  // TODO: Maybe use simplejson and make it an IrmaDisjunction?
   @Column({ nullable: true })
   irmaType: string;
 

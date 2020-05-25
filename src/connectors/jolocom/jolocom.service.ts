@@ -53,10 +53,12 @@ export class JolocomService implements ConnectorService {
   }
 
   async handleIssueCredentialRequest(request: CredentialIssueRequest) {
+    // TODO: implement
     return null;
   }
 
   async handleVerifyCredentialRequest(request: CredentialVerifyRequest) {
+    // TODO: implement
     return null;
   }
 

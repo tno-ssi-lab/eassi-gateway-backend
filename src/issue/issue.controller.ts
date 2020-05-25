@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Param, Post } from '@nestjs/common';
+import { Controller, Get, Query, Param } from '@nestjs/common';
 
 import {
   DecodeIssueRequestPipe,

@@ -5,12 +5,10 @@ import {
   Column,
   OneToOne,
   JoinColumn,
-  OneToMany,
 } from 'typeorm';
 import { randomBytes } from 'crypto';
 
 import { Organization } from '../../organizations/organization.entity';
-import { JolocomCredentialType } from './jolocom-credential-type.entity';
 
 const JOLOCOM_WALLET_SEED_BYTES = 32;
 const JOLOCOM_WALLET_PASSWORD_BYTES = 16;

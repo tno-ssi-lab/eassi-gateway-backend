@@ -110,11 +110,13 @@ interface IrmaCredential {
 export class IrmaService implements ConnectorService {
   type = 'irma';
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async registerOrganization(organization: Organization) {
     // We don't need to do anything for IRMA.
     return;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   canIssueCredentialRequest(request: CredentialIssueRequest) {
     // We cannot issue IRMA credentials right now.
     return false;
@@ -128,6 +130,7 @@ export class IrmaService implements ConnectorService {
     return !!request.type.irmaType;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async handleIssueCredentialRequest(issueRequest: CredentialIssueRequest) {
     throw new NotImplementedException('Cannot issue IRMA credentials');
   }
@@ -141,8 +144,6 @@ export class IrmaService implements ConnectorService {
 
   validateIrmaDisclosure(verifyRequest: CredentialVerifyRequest, jwt: string) {
     const publicKey = IRMASERVER_PUBLIC_KEY;
-
-    console.log(verifyRequest, jwt, publicKey);
 
     const decoded = verify(jwt, publicKey, {
       issuer: 'irmaserver',
