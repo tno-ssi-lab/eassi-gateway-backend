@@ -10,6 +10,7 @@ import { Organization } from '../organizations/organization.entity';
 import { CredentialType } from 'src/types/credential-type.entity';
 
 export interface CredentialVerifyRequestData {
+  jti: string;
   iss: string;
   type: string;
   callbackUrl: string; // the REST api of the verifier where to deliver the credential data
@@ -35,6 +36,12 @@ export class CredentialVerifyRequest implements CredentialRequest {
   @Column()
   @Generated('uuid')
   uuid: string;
+
+  @Column()
+  jwtId: string;
+
+  @Column()
+  hash: string;
 
   @ManyToOne(
     () => Organization,

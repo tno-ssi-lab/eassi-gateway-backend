@@ -3,8 +3,10 @@ import { CredentialType } from 'src/types/credential-type.entity';
 
 export interface CredentialRequest {
   requestId: string;
+  jwtId: string;
+  hash: string;
   iss: string;
-  type: CredentialType;
   callbackUrl: string;
+  type: CredentialType;
   requestor: Organization;
 }

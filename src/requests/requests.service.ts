@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { decode, verify, sign, SignOptions } from 'jsonwebtoken';
+import { decode, verify, sign, SignOptions, VerifyOptions } from 'jsonwebtoken';
 
 import { Organization } from 'src/organizations/organization.entity';
 import {
@@ -14,10 +14,17 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CredentialType } from 'src/types/credential-type.entity';
 import { ResponseStatus } from 'src/connectors/response-status.enum';
+import { createHash } from 'crypto';
 
 export class InvalidRequestJWT extends Error {}
 
-const JWT_MAX_AGE = '300s';
+const JWT_MAX_AGE = '300s'; // TODO: Get from config
+const JWT_AUDIENCE = 'ssi-service-provider'; // TODO: Get from config
+const VERIFY_REQUEST_SUBJECT = 'credential-verify-request';
+const VERIFY_RESPONSE_SUBJECT = 'credential-verify-response';
+
+const ISSUE_REQUEST_SUBJECT = 'credential-issue-request';
+const ISSUE_RESPONSE_SUBJECT = 'credential-issue-response';
 
 @Injectable()
 export class RequestsService {
@@ -86,10 +93,17 @@ export class RequestsService {
   }
 
   async decodeVerifyRequestToken(jwt: string) {
-    // TODO: verify sub(ject)
+    const hash = this.computeHash(jwt);
+
+    let verifyRequest = await this.verifyRequestsRepository.findOne({ hash });
+
+    if (verifyRequest) {
+      return verifyRequest;
+    }
+
     const { request, requestor } = await this.decodeAndVerifyJwt<
       CredentialVerifyRequestData
-    >(jwt);
+    >(jwt, { subject: VERIFY_REQUEST_SUBJECT });
 
     const type = await this.typesRepository.findOneOrFail(
       {
@@ -103,8 +117,10 @@ export class RequestsService {
 
     // TODO: load from db if request already exists.
 
-    const verifyRequest = new CredentialVerifyRequest();
+    verifyRequest = new CredentialVerifyRequest();
 
+    verifyRequest.hash = hash;
+    verifyRequest.jwtId = request.jti;
     verifyRequest.requestor = requestor;
     verifyRequest.type = type;
     verifyRequest.callbackUrl = request.callbackUrl;
@@ -113,11 +129,17 @@ export class RequestsService {
   }
 
   async decodeIssueRequestToken(jwt: string) {
-    // TODO: verify sub(ject)
+    const hash = this.computeHash(jwt);
+
+    let issueRequest = await this.issueRequestsRepository.findOne({ hash });
+
+    if (issueRequest) {
+      return issueRequest;
+    }
 
     const { request, requestor } = await this.decodeAndVerifyJwt<
       CredentialIssueRequestData
-    >(jwt);
+    >(jwt, { subject: ISSUE_REQUEST_SUBJECT });
 
     const type = await this.typesRepository.findOneOrFail(
       {
@@ -129,10 +151,10 @@ export class RequestsService {
       },
     );
 
-    // TODO: load from db if request already exists.
+    issueRequest = new CredentialIssueRequest();
 
-    const issueRequest = new CredentialIssueRequest();
-
+    issueRequest.hash = hash;
+    issueRequest.jwtId = request.jti;
     issueRequest.requestor = requestor;
     issueRequest.type = type;
     issueRequest.callbackUrl = request.callbackUrl;
@@ -143,6 +165,7 @@ export class RequestsService {
 
   async decodeAndVerifyJwt<T = unknown>(
     jwt: string,
+    verifyOptions?: VerifyOptions,
   ): Promise<{ request: T; requestor: Organization }> {
     try {
       // First decode to extract issuer
@@ -162,6 +185,8 @@ export class RequestsService {
       // Verify that jwt is signed by specified issuer
       const request = verify(jwt, requestor.sharedSecret, {
         maxAge: JWT_MAX_AGE,
+        audience: JWT_AUDIENCE,
+        ...verifyOptions,
       });
 
       if (typeof request === 'string') {
@@ -179,6 +204,12 @@ export class RequestsService {
     }
   }
 
+  computeHash(str: string) {
+    const hash = createHash('sha256');
+    hash.update(str);
+    return hash.digest('hex');
+  }
+
   encodeVerifyRequestResponse(
     verifyRequest: CredentialVerifyRequest,
     status: ResponseStatus,
@@ -187,7 +218,7 @@ export class RequestsService {
   ) {
     return this.encodeResponse(
       {
-        requestId: verifyRequest.uuid, // TODO: use jwtid from request
+        requestId: verifyRequest.jwtId,
         type: verifyRequest.type.type,
         status,
         connector: connectorName,
@@ -195,7 +226,7 @@ export class RequestsService {
       },
       verifyRequest.verifier,
       {
-        subject: 'credential-verify-response',
+        subject: VERIFY_RESPONSE_SUBJECT,
       },
     );
   }
@@ -207,14 +238,14 @@ export class RequestsService {
   ) {
     return this.encodeResponse(
       {
-        requestId: issueRequest.uuid, // TODO: use jwtid from request
+        requestId: issueRequest.jwtId,
         type: issueRequest.type.type,
         status,
         connector: connectorName,
       },
       issueRequest.issuer,
       {
-        subject: 'credential-issue-response',
+        subject: ISSUE_RESPONSE_SUBJECT,
       },
     );
   }

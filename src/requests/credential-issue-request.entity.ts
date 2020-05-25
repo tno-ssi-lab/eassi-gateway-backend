@@ -14,6 +14,7 @@ interface CredentialData {
 }
 
 export interface CredentialIssueRequestData {
+  jti: string;
   iss: string;
   type: string;
   data: CredentialData;
@@ -43,6 +44,12 @@ export class CredentialIssueRequest implements CredentialRequest {
 
   @Column('simple-json')
   data: CredentialData;
+
+  @Column()
+  jwtId: string;
+
+  @Column()
+  hash: string;
 
   @ManyToOne(
     () => Organization,
