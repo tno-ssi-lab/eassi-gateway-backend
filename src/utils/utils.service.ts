@@ -19,6 +19,7 @@ export class UtilsService {
     return sign(data, organization.sharedSecret, {
       jwtid: jwtId,
       issuer: organization.uuid,
+      audience: 'ssi-service-provider', // TODO: Get from config
       ...options,
     });
   }
