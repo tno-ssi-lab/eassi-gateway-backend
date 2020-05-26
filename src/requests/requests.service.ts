@@ -1,20 +1,22 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { decode, verify, sign, SignOptions, VerifyOptions } from 'jsonwebtoken';
-
-import { Organization } from 'src/organizations/organization.entity';
-import {
-  CredentialVerifyRequest,
-  CredentialVerifyRequestData,
-} from './credential-verify-request.entity';
-import {
-  CredentialIssueRequest,
-  CredentialIssueRequestData,
-} from './credential-issue-request.entity';
-import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CredentialType } from 'src/types/credential-type.entity';
-import { ResponseStatus } from 'src/connectors/response-status.enum';
+import { Repository } from 'typeorm';
+import { decode, verify, sign, SignOptions, VerifyOptions } from 'jsonwebtoken';
 import { createHash } from 'crypto';
+
+import { validate } from 'class-validator';
+import { plainToClass } from 'class-transformer';
+
+import { Organization } from '../organizations/organization.entity';
+import { CredentialVerifyRequest } from './credential-verify-request.entity';
+import { CredentialIssueRequest } from './credential-issue-request.entity';
+
+import { CredentialType } from '../types/credential-type.entity';
+import { ResponseStatus } from '../connectors/response-status.enum';
+
+import { CredentialIssueRequestData } from './credential-issue-request-data.dto';
+import { CredentialVerifyRequestData } from './credential-verify-request-data.dto';
+import { ClassType } from 'class-transformer/ClassTransformer';
 
 export class InvalidRequestJWT extends Error {}
 
@@ -101,29 +103,32 @@ export class RequestsService {
       return verifyRequest;
     }
 
-    const { request, requestor } = await this.decodeAndVerifyJwt<
-      CredentialVerifyRequestData
-    >(jwt, { subject: VERIFY_REQUEST_SUBJECT });
+    const { request, requestor } = await this.decodeAndVerifyJwt(jwt, {
+      subject: VERIFY_REQUEST_SUBJECT,
+    });
+
+    const requestData = await this.verifyWithClass(
+      CredentialVerifyRequestData,
+      request,
+    );
 
     const type = await this.typesRepository.findOneOrFail(
       {
         organization: requestor,
-        type: request.type,
+        type: requestData.type,
       },
       {
         relations: ['jolocomType'],
       },
     );
 
-    // TODO: load from db if request already exists.
-
     verifyRequest = new CredentialVerifyRequest();
 
     verifyRequest.hash = hash;
-    verifyRequest.jwtId = request.jti;
+    verifyRequest.jwtId = requestData.jti;
     verifyRequest.requestor = requestor;
     verifyRequest.type = type;
-    verifyRequest.callbackUrl = request.callbackUrl;
+    verifyRequest.callbackUrl = requestData.callbackUrl;
 
     return this.verifyRequestsRepository.save(verifyRequest);
   }
@@ -137,14 +142,19 @@ export class RequestsService {
       return issueRequest;
     }
 
-    const { request, requestor } = await this.decodeAndVerifyJwt<
-      CredentialIssueRequestData
-    >(jwt, { subject: ISSUE_REQUEST_SUBJECT });
+    const { request, requestor } = await this.decodeAndVerifyJwt(jwt, {
+      subject: ISSUE_REQUEST_SUBJECT,
+    });
+
+    const requestData = await this.verifyWithClass(
+      CredentialIssueRequestData,
+      request,
+    );
 
     const type = await this.typesRepository.findOneOrFail(
       {
         organization: requestor,
-        type: request.type,
+        type: requestData.type,
       },
       {
         relations: ['jolocomType'],
@@ -154,19 +164,19 @@ export class RequestsService {
     issueRequest = new CredentialIssueRequest();
 
     issueRequest.hash = hash;
-    issueRequest.jwtId = request.jti;
+    issueRequest.jwtId = requestData.jti;
     issueRequest.requestor = requestor;
     issueRequest.type = type;
-    issueRequest.callbackUrl = request.callbackUrl;
-    issueRequest.data = request.data;
+    issueRequest.callbackUrl = requestData.callbackUrl;
+    issueRequest.data = requestData.data;
 
     return this.issueRequestsRepository.save(issueRequest);
   }
 
-  async decodeAndVerifyJwt<T = unknown>(
+  async decodeAndVerifyJwt(
     jwt: string,
     verifyOptions?: VerifyOptions,
-  ): Promise<{ request: T; requestor: Organization }> {
+  ): Promise<{ request: object; requestor: Organization }> {
     try {
       // First decode to extract issuer
       const decoded = decode(jwt, { json: true });
@@ -190,14 +200,15 @@ export class RequestsService {
       });
 
       if (typeof request === 'string') {
-        throw new Error(`String returned '${request}'. Expecting json object`);
+        // This can actually never happen due to the verifyOptions passed above.
+        throw new Error(`String returned: '${request}'. Expecting object`);
       }
 
       // This is an unsafe casting that creates a runtime exception if the
       // casting fails. A more robust solution would be to use the
       // class-transformer and class-validator libraries to make sure the object
       // is valid.
-      return { request: (request as unknown) as T, requestor };
+      return { request, requestor };
     } catch (e) {
       this.logger.error(`Received error during JWT decoding: ${e}`);
       throw new InvalidRequestJWT('Could not decode request JWT');
@@ -208,6 +219,21 @@ export class RequestsService {
     const hash = createHash('sha256');
     hash.update(str);
     return hash.digest('hex');
+  }
+
+  async verifyWithClass<T, V>(cls: ClassType<T>, plain: V): Promise<T> {
+    const entity = plainToClass<T, V>(cls, plain);
+    const errors = await validate(entity);
+
+    if (errors.length > 0) {
+      throw new Error(
+        `Got errors during validation: ${errors
+          .map(e => e.toString())
+          .join(', ')}`,
+      );
+    }
+
+    return entity;
   }
 
   encodeVerifyRequestResponse(

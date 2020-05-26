@@ -7,19 +7,8 @@ import {
 } from 'typeorm';
 import { CredentialRequest } from './credential-request.interface';
 import { Organization } from '../organizations/organization.entity';
-import { CredentialType } from 'src/types/credential-type.entity';
-
-interface CredentialData {
-  [key: string]: string | number | boolean | null;
-}
-
-export interface CredentialIssueRequestData {
-  jti: string;
-  iss: string;
-  type: string;
-  data: CredentialData;
-  callbackUrl: string; // the REST api of the verifier where to deliver the credential data
-}
+import { CredentialType } from '../types/credential-type.entity';
+import { CredentialData } from './credential-issue-request-data.dto';
 
 @Entity()
 export class CredentialIssueRequest implements CredentialRequest {

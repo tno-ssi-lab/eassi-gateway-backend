@@ -18,7 +18,9 @@ export class OrganizationsService {
   }
 
   async findAll() {
-    return this.organizationsRepository.find();
+    return this.organizationsRepository.find({
+      relations: ['credentialTypes'],
+    });
   }
 
   async find(id: number | string) {
