@@ -1,6 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import {
+  Repository,
+  FindOneOptions,
+  FindConditions,
+  DeepPartial,
+} from 'typeorm';
 import { decode, verify, sign, SignOptions, VerifyOptions } from 'jsonwebtoken';
 import { createHash } from 'crypto';
 
@@ -17,6 +22,8 @@ import { ResponseStatus } from '../connectors/response-status.enum';
 import { CredentialIssueRequestData } from './credential-issue-request-data.dto';
 import { CredentialVerifyRequestData } from './credential-verify-request-data.dto';
 import { ClassType } from 'class-transformer/ClassTransformer';
+import { CredentialRequest } from './credential-request.interface';
+import { CredentialRequestData } from './credential-request-data.interface';
 
 export class InvalidRequestJWT extends Error {}
 
@@ -95,61 +102,50 @@ export class RequestsService {
   }
 
   async decodeVerifyRequestToken(jwt: string) {
-    const hash = this.computeHash(jwt);
-
-    let verifyRequest = await this.verifyRequestsRepository.findOne({ hash });
-
-    if (verifyRequest) {
-      return verifyRequest;
-    }
-
-    const { request, requestor } = await this.decodeAndVerifyJwt(jwt, {
-      subject: VERIFY_REQUEST_SUBJECT,
-    });
-
-    const requestData = await this.verifyWithClass(
+    return this.decodeRequestToken(
+      jwt,
+      this.verifyRequestsRepository,
+      CredentialVerifyRequest,
       CredentialVerifyRequestData,
-      request,
+      VERIFY_REQUEST_SUBJECT,
     );
-
-    const type = await this.typesRepository.findOneOrFail(
-      {
-        organization: requestor,
-        type: requestData.type,
-      },
-      {
-        relations: ['jolocomType'],
-      },
-    );
-
-    verifyRequest = new CredentialVerifyRequest();
-
-    verifyRequest.hash = hash;
-    verifyRequest.jwtId = requestData.jti;
-    verifyRequest.requestor = requestor;
-    verifyRequest.type = type;
-    verifyRequest.callbackUrl = requestData.callbackUrl;
-
-    return this.verifyRequestsRepository.save(verifyRequest);
   }
 
   async decodeIssueRequestToken(jwt: string) {
+    return this.decodeRequestToken(
+      jwt,
+      this.issueRequestsRepository,
+      CredentialIssueRequest,
+      CredentialIssueRequestData,
+      ISSUE_REQUEST_SUBJECT,
+      ['data'],
+    );
+  }
+
+  async decodeRequestToken<
+    T extends CredentialRequest,
+    V extends CredentialRequestData
+  >(
+    jwt: string,
+    repo: Repository<T>,
+    cls: ClassType<T>,
+    dtoCls: ClassType<V>,
+    subject: string,
+    additionalFields: string[] = [],
+  ): Promise<T> {
     const hash = this.computeHash(jwt);
 
-    let issueRequest = await this.issueRequestsRepository.findOne({ hash });
+    let entity = await repo.findOne({ hash } as FindOneOptions<T>);
 
-    if (issueRequest) {
-      return issueRequest;
+    if (entity) {
+      return entity;
     }
 
     const { request, requestor } = await this.decodeAndVerifyJwt(jwt, {
-      subject: ISSUE_REQUEST_SUBJECT,
+      subject,
     });
 
-    const requestData = await this.verifyWithClass(
-      CredentialIssueRequestData,
-      request,
-    );
+    const requestData = await this.verifyWithClass(dtoCls, request);
 
     const type = await this.typesRepository.findOneOrFail(
       {
@@ -161,16 +157,18 @@ export class RequestsService {
       },
     );
 
-    issueRequest = new CredentialIssueRequest();
+    entity = new cls();
 
-    issueRequest.hash = hash;
-    issueRequest.jwtId = requestData.jti;
-    issueRequest.requestor = requestor;
-    issueRequest.type = type;
-    issueRequest.callbackUrl = requestData.callbackUrl;
-    issueRequest.data = requestData.data;
+    entity.hash = hash;
+    entity.jwtId = requestData.jti;
+    entity.requestor = requestor;
+    entity.type = type;
+    entity.callbackUrl = requestData.callbackUrl;
 
-    return this.issueRequestsRepository.save(issueRequest);
+    additionalFields.forEach(field => (entity[field] = requestData[field]));
+
+    // FIXME I don't know why we need to cast this so strangely :(
+    return repo.save((entity as unknown) as DeepPartial<T>);
   }
 
   async decodeAndVerifyJwt(
