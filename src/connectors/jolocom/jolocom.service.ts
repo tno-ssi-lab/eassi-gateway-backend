@@ -54,12 +54,18 @@ export class JolocomService implements ConnectorService {
 
   async handleIssueCredentialRequest(request: CredentialIssueRequest) {
     // TODO: implement
-    return null;
+    return {
+      qr:
+        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEX/TQBcNTh/AAAACklEQVR4nGNiAAAABgADNjd8qAAAAABJRU5ErkJggg==',
+    };
   }
 
   async handleVerifyCredentialRequest(request: CredentialVerifyRequest) {
     // TODO: implement
-    return null;
+    return {
+      qr:
+        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEX/TQBcNTh/AAAACklEQVR4nGNiAAAABgADNjd8qAAAAABJRU5ErkJggg==',
+    };
   }
 
   /* JolocomService specific */
