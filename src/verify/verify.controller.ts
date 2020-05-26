@@ -56,6 +56,7 @@ export class VerifyController {
     irmaJwt: string,
   ) {
     try {
+      // TODO: Abstract this properly (also for jolocom)
       const result = this.irmaService.validateIrmaDisclosure(
         verifyRequest,
         irmaJwt,
@@ -71,10 +72,7 @@ export class VerifyController {
       this.gateway.sendRedirectResponse(
         verifyRequest.requestId,
         ResponseStatus.success,
-        new URL(
-          `?response=${responseToken}`,
-          verifyRequest.callbackUrl,
-        ).toString(),
+        `${verifyRequest.callbackUrl}${responseToken}`,
       );
     } catch {
       // TODO: handle bad flow
