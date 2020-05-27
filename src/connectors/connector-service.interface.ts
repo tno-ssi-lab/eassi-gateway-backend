@@ -46,12 +46,4 @@ export interface ConnectorService {
    * @returns All data needed for the front-end to set up a verifying session.
    */
   handleVerifyCredentialRequest(request: CredentialVerifyRequest): Promise<any>;
-
-  // registerRoutes(root: string, app: Express): void;
-
-  // processCredentialIssueRequest(request: CredentialIssueRequest): Promise<void>;
-
-  // processCredentialVerifyRequest(
-  //   request: CredentialVerifyRequest,
-  // ): Promise<void>;
 }

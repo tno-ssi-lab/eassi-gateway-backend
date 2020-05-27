@@ -1,15 +1,14 @@
-import {
-  BaseEntity,
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  OneToMany,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { BaseMetadata } from 'cred-types-jolocom-core/js/types';
 import { CredentialType } from 'src/types/credential-type.entity';
+import {
+  CredentialRenderTypes,
+  CredentialOfferRenderInfo,
+  CredentialOfferMetadata,
+} from 'jolocom-lib/js/interactionTokens/interactionTokens.types';
 
 @Entity()
-export class JolocomCredentialType extends BaseEntity {
+export class JolocomCredentialType {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -30,4 +29,33 @@ export class JolocomCredentialType extends BaseEntity {
     type => type.organization,
   )
   credentialTypes: CredentialType[];
+
+  get schema(): BaseMetadata {
+    return {
+      type: ['Credential', this.type],
+      name: this.name,
+      context: this.context,
+      claimInterface: this.claimInterface,
+    };
+  }
+
+  get offerMetadata(): {
+    renderInfo?: CredentialOfferRenderInfo;
+    metadata?: CredentialOfferMetadata;
+  } {
+    return {
+      renderInfo: {
+        background: {
+          color: '#ffffff',
+        },
+        text: {
+          color: '#000000',
+        },
+        renderAs: CredentialRenderTypes.document,
+      },
+      metadata: {
+        asynchronous: false,
+      },
+    };
+  }
 }

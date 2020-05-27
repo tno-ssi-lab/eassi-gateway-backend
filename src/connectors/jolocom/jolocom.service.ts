@@ -1,15 +1,28 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { JolocomLib } from 'jolocom-lib';
-import { JolocomRegistry } from 'jolocom-lib/js/registries/jolocomRegistry';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import * as QRCode from 'qrcode';
 
+import { JolocomLib } from 'jolocom-lib';
+import { JolocomRegistry } from 'jolocom-lib/js/registries/jolocomRegistry';
+import { JSONWebToken } from 'jolocom-lib/js/interactionTokens/JSONWebToken';
+import { CredentialOfferRequest as JolocomCredentialOfferRequest } from 'jolocom-lib/js/interactionTokens/credentialOfferRequest';
+import { CredentialOfferResponse as JolocomCredentialOfferResponse } from 'jolocom-lib/js/interactionTokens/credentialOfferResponse';
+import { CredentialsReceive as JolocomCredentialsReceive } from 'jolocom-lib/js/interactionTokens/credentialsReceive';
+import { CredentialRequest as JolocomCredentialRequest } from 'jolocom-lib/js/interactionTokens/credentialRequest';
+import { CredentialResponse as JolocomCredentialResponse } from 'jolocom-lib/js/interactionTokens/credentialResponse';
+
+import { ConfigService } from 'src/config/config.service';
 import { ConnectorService } from '../connector-service.interface';
 import { Organization } from '../../organizations/organization.entity';
 import { JolocomWallet } from './jolocom-wallet.entity';
 import { JolocomCredentialType } from './jolocom-credential-type.entity';
 import { CredentialIssueRequest } from 'src/requests/credential-issue-request.entity';
 import { CredentialVerifyRequest } from 'src/requests/credential-verify-request.entity';
+import { JolocomCredentialRequestToken } from './jolocom-credential-request-token.entity';
+import { keyIdToDid } from 'jolocom-lib/js/utils/helper';
+
+const DEFAULT_EXPIRY_MS = 60 * 60 * 1000;
 
 @Injectable()
 export class JolocomService implements ConnectorService {
@@ -23,6 +36,9 @@ export class JolocomService implements ConnectorService {
     private walletsRepository: Repository<JolocomWallet>,
     @InjectRepository(JolocomCredentialType)
     private typesRepository: Repository<JolocomCredentialType>,
+    @InjectRepository(JolocomCredentialRequestToken)
+    private tokenRepository: Repository<JolocomCredentialRequestToken>,
+    private configService: ConfigService,
   ) {
     this.registry = JolocomLib.registries.jolocom.create();
     this.logger = new Logger(JolocomService.name);
@@ -53,18 +69,24 @@ export class JolocomService implements ConnectorService {
   }
 
   async handleIssueCredentialRequest(request: CredentialIssueRequest) {
-    // TODO: implement
+    const credOffer = await this.createCredentialOfferToken(request);
+    const token = credOffer.encode();
+
+    this.logger.debug('Jolocom issue request token', token);
+
     return {
-      qr:
-        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEX/TQBcNTh/AAAACklEQVR4nGNiAAAABgADNjd8qAAAAABJRU5ErkJggg==',
+      qr: await QRCode.toDataURL(token),
     };
   }
 
   async handleVerifyCredentialRequest(request: CredentialVerifyRequest) {
-    // TODO: implement
+    const credRequest = await this.createCredentialRequestToken(request);
+    const token = credRequest.encode();
+
+    this.logger.debug('Jolocom verify request token', token);
+
     return {
-      qr:
-        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEX/TQBcNTh/AAAACklEQVR4nGNiAAAABgADNjd8qAAAAABJRU5ErkJggg==',
+      qr: await QRCode.toDataURL(token),
     };
   }
 
@@ -86,7 +108,7 @@ export class JolocomService implements ConnectorService {
     return this.typesRepository.save(type);
   }
 
-  async createWalletForOrganization(organization: Organization) {
+  protected async createWalletForOrganization(organization: Organization) {
     this.logger.debug(`Creating wallet for ${organization.name}`);
     const seed = JolocomWallet.randomSeed();
     const password = JolocomWallet.randomPassword();
@@ -102,20 +124,14 @@ export class JolocomService implements ConnectorService {
     return wallet;
   }
 
-  async registerWallet(wallet: JolocomWallet) {
+  protected async registerWallet(wallet: JolocomWallet) {
     this.logger.debug(`Wallet registration started`);
     const keyProvider = this.getKeyProvider(wallet);
-    const identityWallet = await this.registry.create(
-      keyProvider,
-      wallet.password,
-    );
+    await this.registry.create(keyProvider, wallet.password);
     this.logger.debug(`Wallet registration successful`);
-
-    // TODO: Maybe we shouldn't return here.
-    return identityWallet;
   }
 
-  async getIdentityWallet(wallet: JolocomWallet) {
+  protected async getIdentityWallet(wallet: JolocomWallet) {
     const keyProvider = this.getKeyProvider(wallet);
     const identityWallet = await this.registry.authenticate(keyProvider, {
       derivationPath: JolocomLib.KeyTypes.jolocomIdentityKey,
@@ -124,14 +140,14 @@ export class JolocomService implements ConnectorService {
     return identityWallet;
   }
 
-  async fuelWallet(wallet: JolocomWallet) {
+  protected async fuelWallet(wallet: JolocomWallet) {
     this.logger.debug(`Wallet fueling started`);
     const publicEthKey = this.getPublicEthKey(wallet);
     await JolocomLib.util.fuelKeyWithEther(publicEthKey);
     this.logger.debug(`Wallet fueling started`);
   }
 
-  getPublicEthKey(wallet: JolocomWallet) {
+  protected getPublicEthKey(wallet: JolocomWallet) {
     const keyProvider = this.getKeyProvider(wallet);
     return keyProvider.getPublicKey({
       encryptionPass: wallet.password,
@@ -139,248 +155,194 @@ export class JolocomService implements ConnectorService {
     });
   }
 
-  getKeyProvider(wallet: JolocomWallet) {
+  protected getKeyProvider(wallet: JolocomWallet) {
     return new JolocomLib.KeyProvider(wallet.encryptedSeed);
   }
 
-  /* Jolocom specific */
-  // public async processCredentialIssueRequest(
-  //   request: CredentialIssueRequest,
-  //   response: Response,
-  // ): Promise<void> {
-  //   const credOffer = await this.createCredentialOfferToken(request);
-  //   const token = credOffer.encode();
+  /**
+   * Construct a Jolocom CredentialOffer interaction token
+   *
+   * @param issueRequest the credential issue request
+   */
+  protected async createCredentialOfferToken(
+    issueRequest: CredentialIssueRequest,
+  ): Promise<JSONWebToken<JolocomCredentialOfferRequest>> {
+    const issuer = issueRequest.issuer;
+    const wallet = issuer.jolocomWallet;
+    const jolocomType = issueRequest.type.jolocomType;
+    const identityWallet = await this.getIdentityWallet(issuer.jolocomWallet);
 
-  //   const viewData = {
-  //     requestId: request.requestId,
-  //     qr: await QRCode.toDataURL(token),
-  //   };
-  //   console.debug('Jolocom CredentialOfferToken: ', credOffer.encode());
-
-  //   return response.render('jolocom/issue', viewData);
-  // }
-
-  // public async processCredentialVerifyRequest(
-  //   verifyRequest: CredentialVerifyRequest,
-  //   response: Response,
-  // ): Promise<void> {
-  //   // Create Jolocom interaction token
-  //   const credRequestToken = await this.createCredentialRequestToken(
-  //     verifyRequest,
-  //   );
-
-  //   const jwt = credRequestToken.encode();
-
-  //   // Render interaction token (qr code) to user
-  //   const viewData = {
-  //     requestId: verifyRequest.requestId,
-  //     qr: await QRCode.toDataURL(jwt),
-  //   };
-
-  //   return response.render('jolocom/verify', viewData);
-  // }
+    // Return a Jolocom CredentialOffert interaction token
+    return identityWallet.create.interactionTokens.request.offer(
+      {
+        expires: new Date(Date.now() + DEFAULT_EXPIRY_MS), // FIXME Is this necessary?
+        callbackURL: this.configService.getUrl(
+          `/api/issue/jolocom/recieve?issueRequestId=${issueRequest.requestId}`,
+        ),
+        offeredCredentials: [
+          {
+            type: jolocomType.type,
+            ...jolocomType.offerMetadata,
+          },
+        ],
+      },
+      wallet.password,
+    );
+  }
 
   /**
-   * Instantiate a Jolocom IdentityWallet
-   * This wallet must already be registered on Etherium
+   * Construct a Jolocom CredentialReceive interaction token
+   * to actual issue the credential to the user's wallet app
    *
-   * @param organization the organization for which an identifity wallet is instantiated
+   * @param issueRequest the credential issue request
+   * @param jolocomOfferResponse the Jolocom CredentialOfferResponse that is received from the user's wallet app
    */
-  // protected async getIdentityWallet(
-  //   organization: Organization,
-  // ): Promise<IdentityWallet> {
-  //   const password = organization.walletConfigs.jolocom!.password;
-  //   const seed = Buffer.from(organization.walletConfigs.jolocom!.seed, 'hex');
+  public async createCredentialToken(
+    issueRequest: CredentialIssueRequest,
+    jwt: string,
+  ): Promise<JSONWebToken<JolocomCredentialsReceive>> {
+    const issuer = issueRequest.issuer;
+    const wallet = issuer.jolocomWallet;
+    const identityWallet = await this.getIdentityWallet(wallet);
 
-  //   /**
-  //    * From Jolocom Documentation:
-  //    * You will need to instantiate a Key Provider using the seed used for identity creation
-  //    * We are currently working on simplifying, and optimising this part of the api
-  //    */
-  //   const vaultedKeyProvider = JolocomLib.KeyProvider.fromSeed(seed, password);
-  //   const registry = JolocomLib.registries.jolocom.create();
+    const jolocomOfferResponse = JolocomLib.parse.interactionToken.fromJWT<
+      JolocomCredentialOfferResponse
+    >(jwt);
 
-  //   return await registry.authenticate(vaultedKeyProvider, {
-  //     derivationPath: JolocomLib.KeyTypes.jolocomIdentityKey,
-  //     encryptionPass: password,
-  //   });
-  // }
+    const subject = jolocomOfferResponse.issuer; // the wallet app that wants to receive a credential
 
-  // /**
-  //  * Construct a Jolocom CredentialOffer interaction token
-  //  *
-  //  * @param issueRequest the credential issue request
-  //  */
-  // protected async createCredentialOfferToken(
-  //   issueRequest: CredentialIssueRequest,
-  // ): Promise<JSONWebToken<CredentialOfferRequest>> {
-  //   const issuer = issueRequest.getIssuer();
-  //   const identityWallet = await this.getIdentityWallet(issuer);
-  //   const { credentialOffers, password } = issuer.walletConfigs.jolocom!;
+    const jolocomType = issueRequest.type.jolocomType;
 
-  //   // Get the Jolocom offeredType and metadata from configured list with credential offers
-  //   const {
-  //     schema: { type: offeredType },
-  //     metadata = {},
-  //   } = credentialOffers[issueRequest.credentialType]; // Use the credential type URI as defined in the CredentialIssueRequest
+    // Create actual credential (with data)
+    const credential = await identityWallet.create.signedCredential(
+      {
+        metadata: jolocomType.schema,
+        claim: {
+          ...issueRequest.data,
+        },
+        subject: keyIdToDid(subject),
+      },
+      wallet.password,
+    );
 
-  //   // Return a Jolocom CredentialOffert interaction token
-  //   return await identityWallet.create.interactionTokens.request.offer(
-  //     {
-  //       callbackURL: SSIServiceApp.getUrl(
-  //         `/connectors/jolocom/issue/${issueRequest.requestId}`,
-  //       ),
-  //       offeredCredentials: [
-  //         {
-  //           type: offeredType[offeredType.length - 1],
-  //           ...metadata,
-  //         },
-  //       ],
-  //     },
-  //     password,
-  //   );
-  // }
+    // Wrap credential in Jolocom interaction token object
+    const token = await identityWallet.create.interactionTokens.response.issue(
+      {
+        signedCredentials: [credential.toJSON()],
+      },
+      wallet.password,
+      jolocomOfferResponse,
+    );
 
-  // /**
-  //  * Construct a Jolocom CredentialReceive interaction token
-  //  * to actual issue the credential to the user's wallet app
-  //  *
-  //  * @param issueRequest the credential issue request
-  //  * @param jolocomOfferResponse the Jolocom CredentialOfferResponse that is received from the user's wallet app
-  //  */
-  // public async createCredential(
-  //   issueRequest: CredentialIssueRequest,
-  //   jolocomOfferResponse: JSONWebToken<JWTEncodable>,
-  // ): Promise<JSONWebToken<JWTEncodable>> {
-  //   const issuer = issueRequest.getIssuer(); // the organization that wants to issue a credential
-  //   const identityWallet = await this.getIdentityWallet(issuer); // jolocom identity wallet of the issuer
-  //   const password = issuer.walletConfigs.jolocom!.password; // password to sign credential
-  //   const subject = jolocomOfferResponse.issuer; // the wallet app that wants to receive a credential
-  //   const credentialType = issuer.walletConfigs.jolocom!.credentialOffers[
-  //     issueRequest.credentialType
-  //   ];
+    return token as JSONWebToken<JolocomCredentialsReceive>;
+  }
 
-  //   // Create actual credential (with data)
-  //   const credential = await identityWallet.create.signedCredential(
-  //     {
-  //       metadata: credentialType.schema,
-  //       claim: {
-  //         ...issueRequest.credentialData,
-  //       },
-  //       subject: keyIdToDid(subject),
-  //     },
-  //     password,
-  //   );
+  /**
+   * Construct a Jolocom CredentialRequest interaction token
+   *
+   * @param verifyRequest the credential verify request
+   */
+  protected async createCredentialRequestToken(
+    verifyRequest: CredentialVerifyRequest,
+  ): Promise<JSONWebToken<JolocomCredentialRequest>> {
+    const verifier = verifyRequest.verifier;
+    const wallet = verifier.jolocomWallet;
+    const jolocomType = verifyRequest.type.jolocomType;
+    const identityWallet = await this.getIdentityWallet(wallet);
 
-  //   // Wrap credential in Jolocom interaction token object
-  //   return await identityWallet.create.interactionTokens.response.issue(
-  //     {
-  //       signedCredentials: [credential.toJSON()],
-  //     },
-  //     password,
-  //     jolocomOfferResponse,
-  //   );
-  // }
+    const credentialRequestToken = await identityWallet.create.interactionTokens.request.share(
+      {
+        expires: new Date(Date.now() + DEFAULT_EXPIRY_MS), // FIXME Is this necessary?
+        callbackURL: this.configService.getUrl(
+          `/verify/jolocom/disclose?verifyRequestId=${verifyRequest.requestId}`,
+        ),
+        credentialRequirements: [
+          {
+            type: ['Credential', jolocomType.type],
+            constraints: [
+              // TODO: implement check on allowed issuers
+              // constraintFunctions.is(
+              //   "issuer",
+              //   "did:jolo:ed19430d6e28057194870dc9b19c1ca2ad099ff090b52350add129f1049bb65d"
+              // )
+            ],
+          },
+        ],
+      },
+      wallet.password,
+    );
 
-  // /**
-  //  * Construct a Jolocom CredentialRequest interaction token
-  //  *
-  //  * @param verifyRequest the credential verify request
-  //  */
-  // protected async createCredentialRequestToken(
-  //   verifyRequest: CredentialVerifyRequest,
-  // ): Promise<JSONWebToken<CredentialRequest>> {
-  //   const verifier = verifyRequest.getVerifier();
-  //   const identityWallet = await this.getIdentityWallet(verifier);
-  //   const password = verifier.walletConfigs.jolocom!.password;
-  //   const credentialRequestToken = await identityWallet.create.interactionTokens.request.share(
-  //     {
-  //       callbackURL: SSIServiceApp.getUrl(
-  //         `/connectors/jolocom/verify/${verifyRequest.requestId}`,
-  //       ),
-  //       credentialRequirements: [
-  //         {
-  //           type: ['Credential', verifyRequest.credentialType],
-  //           constraints: [
-  //             // TODO: implement check on allowed issuers
-  //             // constraintFunctions.is(
-  //             //   "issuer",
-  //             //   "did:jolo:ed19430d6e28057194870dc9b19c1ca2ad099ff090b52350add129f1049bb65d"
-  //             // )
-  //           ],
-  //         },
-  //       ],
-  //     },
-  //     password,
-  //   );
+    const token = new JolocomCredentialRequestToken();
+    token.nonce = credentialRequestToken.nonce;
+    token.verifyRequest = verifyRequest;
+    token.token = credentialRequestToken.encode();
 
-  //   // Save CredentialRequest because it is needed to verify a CredentialResponse token in the
-  //   // next step. See method receiveCredential() below
-  //   Store.set(credentialRequestToken.nonce, credentialRequestToken.encode());
+    // Save CredentialRequest because it is needed to verify a CredentialResponse token in the
+    // next step. See method receiveCredential() below
+    await this.tokenRepository.save(token);
 
-  //   return credentialRequestToken;
-  // }
+    return credentialRequestToken;
+  }
 
-  // public async receiveCredential(
-  //   verifyRequest: CredentialVerifyRequest,
-  //   token: string,
-  // ): Promise<any> {
-  //   const jolocomCredentialResponse = JolocomLib.parse.interactionToken.fromJWT(
-  //     token,
-  //   );
+  public async handleJolocomDisclosure(
+    verifyRequest: CredentialVerifyRequest,
+    token: string,
+  ): Promise<any> {
+    this.logger.debug('Jolocom disclosure token', token);
 
-  //   // TODO: check if this is needed here or can be done in JolocomConnector.receiveCredential() method
-  //   if (!JolocomLib.util.validateDigestable(jolocomCredentialResponse)) {
-  //     throw new Error('Invalid signature');
-  //     // res.status(401).send("Invalid signature on interaction token");
-  //   }
+    const jolocomCredentialResponse = JolocomLib.parse.interactionToken.fromJWT<
+      JolocomCredentialResponse
+    >(token);
 
-  //   const identityWallet = await this.getIdentityWallet(
-  //     verifyRequest.getVerifier(),
-  //   );
+    if (!JolocomLib.util.validateDigestable(jolocomCredentialResponse)) {
+      throw new Error('Invalid signature');
+    }
 
-  //   // Get the CredentialShareToken (issued in previous interaction step)
-  //   const jolocomCredentialRequestJWT: string = Store.get(
-  //     jolocomCredentialResponse.nonce,
-  //   );
+    const identityWallet = await this.getIdentityWallet(
+      verifyRequest.verifier.jolocomWallet,
+    );
 
-  //   const jolocomCredentialRequest: JSONWebToken<CredentialRequest> = JolocomLib.parse.interactionToken.fromJWT(
-  //     jolocomCredentialRequestJWT,
-  //   );
+    const jolocomToken = await this.tokenRepository.findOneOrFail({
+      verifyRequest,
+      nonce: jolocomCredentialResponse.nonce,
+    });
 
-  //   // The validate method will ensure the response contains a valid signature, is not expired,
-  //   // lists our did in the aud (audience) section, and contains the same jti (nonce) as the request.
-  //   // TODO: move this to route middleware
-  //   await identityWallet.validateJWT(
-  //     jolocomCredentialResponse,
-  //     jolocomCredentialRequest,
-  //   );
+    const jolocomCredentialRequest: JSONWebToken<JolocomCredentialRequest> = JolocomLib.parse.interactionToken.fromJWT(
+      jolocomToken.token,
+    );
 
-  //   const credentialResponse = jolocomCredentialResponse.interactionToken as CredentialResponse;
+    // The validate method will ensure the response contains a valid signature, is not expired,
+    // lists our did in the aud (audience) section, and contains the same jti (nonce) as the request.
+    await identityWallet.validateJWT(
+      jolocomCredentialResponse,
+      jolocomCredentialRequest,
+    );
 
-  //   // We check against the request we created in a previous step
-  //   const validResponse = credentialResponse.satisfiesRequest(
-  //     jolocomCredentialRequest.interactionToken,
-  //   );
+    const credentialResponse = jolocomCredentialResponse.interactionToken;
 
-  //   if (!validResponse) {
-  //     throw new Error('Incorrect credential received');
-  //   }
+    // We check against the request we created in a previous step
+    const validResponse = credentialResponse.satisfiesRequest(
+      jolocomCredentialRequest.interactionToken,
+    );
 
-  //   // Validate the provided credentials
-  //   const providedCredentials = credentialResponse.suppliedCredentials;
-  //   const signatureValidationResults = await JolocomLib.util.validateDigestables(
-  //     providedCredentials,
-  //   );
+    if (!validResponse) {
+      throw new Error('Incorrect credential received');
+    }
 
-  //   if (signatureValidationResults.every(result => result === true)) {
-  //     // The credentials can be used
-  //     const data = providedCredentials.map(credential => credential.toJSON());
+    // Validate the provided credentials
+    const providedCredentials = credentialResponse.suppliedCredentials;
+    const signatureValidationResults = await JolocomLib.util.validateDigestables(
+      providedCredentials,
+    );
 
-  //     // Handle the data in the provided credentials
-  //     return verifyRequest.processCredentialData(data);
-  //   } else {
-  //     throw new Error('Not all provided credentials are valid');
-  //   }
-  // }
+    if (signatureValidationResults.every(result => result === true)) {
+      // The credentials can be used
+      const data = providedCredentials.map(credential => credential.toJSON());
+
+      // Handle the data in the provided credentials
+      return data;
+    } else {
+      throw new Error('Not all provided credentials are valid');
+    }
+  }
 }

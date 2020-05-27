@@ -142,7 +142,7 @@ export class IrmaService implements ConnectorService {
     };
   }
 
-  validateIrmaDisclosure(verifyRequest: CredentialVerifyRequest, jwt: string) {
+  handleIrmaDisclosure(verifyRequest: CredentialVerifyRequest, jwt: string) {
     const publicKey = IRMASERVER_PUBLIC_KEY;
 
     const decoded = verify(jwt, publicKey, {

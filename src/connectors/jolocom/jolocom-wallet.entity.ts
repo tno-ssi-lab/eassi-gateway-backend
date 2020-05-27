@@ -1,5 +1,4 @@
 import {
-  BaseEntity,
   Entity,
   PrimaryGeneratedColumn,
   Column,
@@ -14,7 +13,7 @@ const JOLOCOM_WALLET_SEED_BYTES = 32;
 const JOLOCOM_WALLET_PASSWORD_BYTES = 16;
 
 @Entity()
-export class JolocomWallet extends BaseEntity {
+export class JolocomWallet {
   @PrimaryGeneratedColumn()
   id: number;
 

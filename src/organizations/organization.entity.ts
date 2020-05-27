@@ -32,6 +32,9 @@ export class Organization {
   @OneToOne(
     () => JolocomWallet,
     wallet => wallet.organization,
+    {
+      eager: true,
+    },
   )
   jolocomWallet: JolocomWallet;
 

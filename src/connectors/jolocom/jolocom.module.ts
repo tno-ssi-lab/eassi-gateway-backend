@@ -5,9 +5,16 @@ import { JolocomService } from './jolocom.service';
 import { JolocomWallet } from './jolocom-wallet.entity';
 import { JolocomCredentialType } from './jolocom-credential-type.entity';
 import { JolocomController } from './jolocom.controller';
+import { JolocomCredentialRequestToken } from './jolocom-credential-request-token.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([JolocomWallet, JolocomCredentialType])],
+  imports: [
+    TypeOrmModule.forFeature([
+      JolocomWallet,
+      JolocomCredentialType,
+      JolocomCredentialRequestToken,
+    ]),
+  ],
   providers: [JolocomService],
   exports: [JolocomService, TypeOrmModule],
   controllers: [JolocomController],

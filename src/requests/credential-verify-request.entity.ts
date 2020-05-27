@@ -4,10 +4,12 @@ import {
   Column,
   Generated,
   ManyToOne,
+  OneToMany,
 } from 'typeorm';
 import { CredentialRequest } from './credential-request.interface';
 import { Organization } from '../organizations/organization.entity';
 import { CredentialType } from 'src/types/credential-type.entity';
+import { JolocomCredentialRequestToken } from 'src/connectors/jolocom/jolocom-credential-request-token.entity';
 
 export interface CredentialVerifyRequestData {
   jti: string;
@@ -51,6 +53,12 @@ export class CredentialVerifyRequest implements CredentialRequest {
     },
   )
   requestor: Organization;
+
+  @OneToMany(
+    () => JolocomCredentialRequestToken,
+    token => token.verifyRequest,
+  )
+  jolocomTokens: JolocomCredentialRequestToken[];
 
   static requestType: string;
 

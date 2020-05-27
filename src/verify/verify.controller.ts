@@ -11,6 +11,7 @@ import {
 import { CredentialVerifyRequest } from '../requests/credential-verify-request.entity';
 import { RequestsGateway } from '../requests/requests.gateway';
 import { IrmaService } from 'src/connectors/irma/irma.service';
+import { JolocomService } from 'src/connectors/jolocom/jolocom.service';
 import { RequestsService } from 'src/requests/requests.service';
 import { ResponseStatus } from 'src/connectors/response-status.enum';
 
@@ -20,6 +21,7 @@ export class VerifyController {
     private gateway: RequestsGateway,
     private connectorsService: ConnectorsService,
     private irmaService: IrmaService,
+    private jolocomService: JolocomService,
     private requestsService: RequestsService,
   ) {
     console.log(this.gateway);
@@ -57,7 +59,7 @@ export class VerifyController {
   ) {
     try {
       // TODO: Abstract this properly (also for jolocom)
-      const result = this.irmaService.validateIrmaDisclosure(
+      const result = this.irmaService.handleIrmaDisclosure(
         verifyRequest,
         irmaJwt,
       );
@@ -66,6 +68,37 @@ export class VerifyController {
         verifyRequest,
         ResponseStatus.success,
         'irma',
+        result,
+      );
+
+      this.gateway.sendRedirectResponse(
+        verifyRequest.requestId,
+        ResponseStatus.success,
+        `${verifyRequest.callbackUrl}${responseToken}`,
+      );
+    } catch {
+      // TODO: handle bad flow
+    }
+  }
+
+  @Post('jolocom/disclose')
+  handleJolocomVerifyDisclosure(
+    @Query('verifyRequestId', GetVerifyRequestPipe)
+    verifyRequest: CredentialVerifyRequest,
+    @Body('token')
+    jolocomJwt: string,
+  ) {
+    try {
+      // TODO: Abstract this properly (also for jolocom)
+      const result = this.jolocomService.handleJolocomDisclosure(
+        verifyRequest,
+        jolocomJwt,
+      );
+
+      const responseToken = this.requestsService.encodeVerifyRequestResponse(
+        verifyRequest,
+        ResponseStatus.success,
+        'jolocom',
         result,
       );
 
