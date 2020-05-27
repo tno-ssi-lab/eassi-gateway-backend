@@ -18,8 +18,6 @@ RUN npm install
 # Copy all other source code to work directory
 COPY . ./
 
-ENV SSI_SERVER_URL=https://path/to/my/server
-
 EXPOSE 3000
 
 # need to build at runtime because config.ts might be replaced/mounted
