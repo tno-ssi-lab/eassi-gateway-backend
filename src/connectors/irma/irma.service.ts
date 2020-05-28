@@ -108,7 +108,7 @@ interface IrmaCredential {
 
 @Injectable()
 export class IrmaService implements ConnectorService {
-  type = 'irma';
+  name = 'irma';
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async registerOrganization(organization: Organization) {

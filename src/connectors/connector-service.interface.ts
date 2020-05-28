@@ -7,7 +7,7 @@ import { CredentialVerifyRequest } from 'src/requests/credential-verify-request.
  * e.g. connectors for Jolocom, IRMA, ...
  */
 export interface ConnectorService {
-  type: string;
+  name: string;
   /**
    * Method for registering an organisation to use a certain SSI implementation
    * E.g. for Jolocom a self-sovereign identity must be created and anchored on Ethereum (see: https://jolocom-lib.readthedocs.io/en/latest/gettingStarted.html#how-to-create-a-self-sovereign-identity)

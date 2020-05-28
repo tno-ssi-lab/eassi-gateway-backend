@@ -26,7 +26,7 @@ const DEFAULT_EXPIRY_MS = 60 * 60 * 1000;
 
 @Injectable()
 export class JolocomService implements ConnectorService {
-  type = 'jolocom';
+  name = 'jolocom';
 
   private registry: JolocomRegistry;
   private logger: Logger;

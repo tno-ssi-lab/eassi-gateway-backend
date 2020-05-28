@@ -36,7 +36,7 @@ export class VerifyController {
       verifyRequest,
       availableConnectors: await this.connectorsService
         .availableVerifyConnectors(verifyRequest)
-        .then(cs => cs.map(c => c.type)),
+        .then(cs => cs.map(c => c.name)),
     };
   }
 

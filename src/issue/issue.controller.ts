@@ -22,7 +22,7 @@ export class IssueController {
       issueRequest,
       availableConnectors: await this.connectorsService
         .availableIssueConnectors(issueRequest)
-        .then(cs => cs.map(c => c.type)),
+        .then(cs => cs.map(c => c.name)),
     };
   }
 

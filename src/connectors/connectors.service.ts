@@ -18,8 +18,8 @@ export class ConnectorsService {
     this.connectors.push(this.irmaService);
   }
 
-  getConnector(type: string) {
-    return this.connectors.find(connector => connector.type === type);
+  getConnector(name: string) {
+    return this.connectors.find(connector => connector.name === name);
   }
 
   async registerOrganization(organization: Organization) {
