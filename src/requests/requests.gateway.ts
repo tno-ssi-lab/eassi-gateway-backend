@@ -8,13 +8,20 @@ import {
 import { Socket, Server } from 'socket.io';
 
 import { CredentialVerifyRequest } from './credential-verify-request.entity';
-import { DecodeVerifyRequestPipe } from './requests.pipe';
+import {
+  DecodeVerifyRequestPipe,
+  DecodeIssueRequestPipe,
+} from './requests.pipe';
 import { ResponseStatus } from 'src/connectors/response-status.enum';
+import { CredentialIssueRequest } from './credential-issue-request.entity';
+import { RequestsService } from './requests.service';
 
 @WebSocketGateway()
 export class RequestsGateway {
   @WebSocketServer()
   server: Server;
+
+  constructor(private requestsService: RequestsService) {}
 
   @SubscribeMessage('message')
   handleMessage(@MessageBody() message: string): string {
@@ -29,6 +36,14 @@ export class RequestsGateway {
     return verifyRequest;
   }
 
+  @SubscribeMessage('issue-request')
+  handleIssueRequest(
+    @MessageBody(DecodeIssueRequestPipe)
+    issueRequest: CredentialIssueRequest,
+  ): CredentialIssueRequest {
+    return issueRequest;
+  }
+
   @SubscribeMessage('request-started')
   handleRequestStarted(
     @MessageBody()
@@ -38,6 +53,67 @@ export class RequestsGateway {
   ) {
     console.log('Client', client.id, 'joined', requestId);
     client.join(requestId);
+  }
+
+  @SubscribeMessage('request-success')
+  async handleRequestDone(
+    @MessageBody()
+    { requestId, connector }: { requestId: string; connector: string },
+  ) {
+    console.log('Done with request', requestId);
+
+    const request = await this.requestsService.findRequestByRequestId(
+      requestId,
+    );
+
+    if (request instanceof CredentialIssueRequest) {
+      const responseToken = this.requestsService.encodeIssueRequestResponse(
+        request,
+        ResponseStatus.success,
+        connector,
+      );
+
+      this.sendRedirectResponse(
+        requestId,
+        ResponseStatus.success,
+        `${request.callbackUrl}${responseToken}`,
+      );
+    } else {
+      // FIXME: Raise error? We should probably only allow issue request to be
+      // done manually.
+    }
+  }
+
+  @SubscribeMessage('request-cancelled')
+  async handleRequestCancelled(
+    @MessageBody()
+    requestId: string,
+  ) {
+    console.log('Done with request', requestId);
+
+    const request = await this.requestsService.findRequestByRequestId(
+      requestId,
+    );
+
+    let responseToken: string;
+
+    if (request instanceof CredentialIssueRequest) {
+      responseToken = this.requestsService.encodeIssueRequestResponse(
+        request,
+        ResponseStatus.cancelled,
+      );
+    } else {
+      responseToken = this.requestsService.encodeVerifyRequestResponse(
+        request,
+        ResponseStatus.cancelled,
+      );
+    }
+
+    this.sendRedirectResponse(
+      requestId,
+      ResponseStatus.cancelled,
+      `${request.callbackUrl}${responseToken}`,
+    );
   }
 
   sendRedirectResponse(

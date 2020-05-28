@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Param } from '@nestjs/common';
+import { Controller, Get, Query, Param, Body, Post } from '@nestjs/common';
 
 import {
   DecodeIssueRequestPipe,
@@ -8,10 +8,14 @@ import { CredentialIssueRequest } from '../requests/credential-issue-request.ent
 import { ConnectorsService } from '../connectors/connectors.service';
 import { GetConnectorPipe } from '../connectors/get-connector.pipe';
 import { ConnectorService } from '../connectors/connector-service.interface';
+import { JolocomService } from 'src/connectors/jolocom/jolocom.service';
 
 @Controller('api/issue')
 export class IssueController {
-  constructor(private connectorsService: ConnectorsService) {}
+  constructor(
+    private connectorsService: ConnectorsService,
+    private jolocomService: JolocomService,
+  ) {}
 
   @Get()
   async receiveCredentialIssueRequest(
@@ -33,5 +37,15 @@ export class IssueController {
     issueRequest: CredentialIssueRequest,
   ) {
     return connectorService.handleIssueCredentialRequest(issueRequest);
+  }
+
+  @Post('jolocom/receive')
+  async handleCredentialIssueReceive(
+    @Query('issueRequestId', GetIssueRequestPipe)
+    issueRequest: CredentialIssueRequest,
+    @Body('token')
+    token: string,
+  ) {
+    return this.jolocomService.handleIssueCredential(issueRequest, token);
   }
 }

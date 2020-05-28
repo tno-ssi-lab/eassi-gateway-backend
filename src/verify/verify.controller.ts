@@ -10,8 +10,6 @@ import {
 } from '../requests/requests.pipe';
 import { CredentialVerifyRequest } from '../requests/credential-verify-request.entity';
 import { RequestsGateway } from '../requests/requests.gateway';
-import { IrmaService } from 'src/connectors/irma/irma.service';
-import { JolocomService } from 'src/connectors/jolocom/jolocom.service';
 import { RequestsService } from 'src/requests/requests.service';
 import { ResponseStatus } from 'src/connectors/response-status.enum';
 
@@ -20,12 +18,8 @@ export class VerifyController {
   constructor(
     private gateway: RequestsGateway,
     private connectorsService: ConnectorsService,
-    private irmaService: IrmaService,
-    private jolocomService: JolocomService,
     private requestsService: RequestsService,
-  ) {
-    console.log(this.gateway);
-  }
+  ) {}
 
   @Get()
   async receiveCredentialVerifyRequest(
@@ -46,69 +40,97 @@ export class VerifyController {
     @Query('verifyRequestId', GetVerifyRequestPipe)
     verifyRequest: CredentialVerifyRequest,
   ) {
-    console.log(verifyRequest, connectorService);
     return connectorService.handleVerifyCredentialRequest(verifyRequest);
   }
 
-  @Post('irma/disclose')
-  handleIrmaVerifyDisclosure(
+  @Post(':connector/disclose')
+  async handleCredentialVerifyDisclosure(
+    @Param('connector', GetConnectorPipe) connectorService: ConnectorService,
     @Query('verifyRequestId', GetVerifyRequestPipe)
     verifyRequest: CredentialVerifyRequest,
-    @Body('jwt')
-    irmaJwt: string,
+    @Body()
+    body: unknown,
   ) {
-    try {
-      // TODO: Abstract this properly (also for jolocom)
-      const result = this.irmaService.handleIrmaDisclosure(
-        verifyRequest,
-        irmaJwt,
-      );
+    const data = await connectorService.handleVerifyCredentialDisclosure(
+      verifyRequest,
+      body,
+    );
 
-      const responseToken = this.requestsService.encodeVerifyRequestResponse(
-        verifyRequest,
-        ResponseStatus.success,
-        'irma',
-        result,
-      );
+    const responseToken = this.requestsService.encodeVerifyRequestResponse(
+      verifyRequest,
+      ResponseStatus.success,
+      connectorService.name,
+      data,
+    );
 
-      this.gateway.sendRedirectResponse(
-        verifyRequest.requestId,
-        ResponseStatus.success,
-        `${verifyRequest.callbackUrl}${responseToken}`,
-      );
-    } catch {
-      // TODO: handle bad flow
-    }
+    this.gateway.sendRedirectResponse(
+      verifyRequest.requestId,
+      ResponseStatus.success,
+      `${verifyRequest.callbackUrl}${responseToken}`,
+    );
   }
 
-  @Post('jolocom/disclose')
-  handleJolocomVerifyDisclosure(
-    @Query('verifyRequestId', GetVerifyRequestPipe)
-    verifyRequest: CredentialVerifyRequest,
-    @Body('token')
-    jolocomJwt: string,
-  ) {
-    try {
-      // TODO: Abstract this properly (also for jolocom)
-      const result = this.jolocomService.handleJolocomDisclosure(
-        verifyRequest,
-        jolocomJwt,
-      );
+  // @Post('irma/disclose')
+  // handleIrmaVerifyDisclosure(
+  //   @Query('verifyRequestId', GetVerifyRequestPipe)
+  //   verifyRequest: CredentialVerifyRequest,
+  //   @Body('jwt')
+  //   irmaJwt: string,
+  // ) {
+  //   try {
+  //     // TODO: Abstract this properly (also for jolocom)
+  //     const result = this.irmaService.handleIrmaDisclosure(
+  //       verifyRequest,
+  //       irmaJwt,
+  //     );
 
-      const responseToken = this.requestsService.encodeVerifyRequestResponse(
-        verifyRequest,
-        ResponseStatus.success,
-        'jolocom',
-        result,
-      );
+  //     const responseToken = this.requestsService.encodeVerifyRequestResponse(
+  //       verifyRequest,
+  //       ResponseStatus.success,
+  //       'irma',
+  //       result,
+  //     );
 
-      this.gateway.sendRedirectResponse(
-        verifyRequest.requestId,
-        ResponseStatus.success,
-        `${verifyRequest.callbackUrl}${responseToken}`,
-      );
-    } catch {
-      // TODO: handle bad flow
-    }
-  }
+  //     this.gateway.sendRedirectResponse(
+  //       verifyRequest.requestId,
+  //       ResponseStatus.success,
+  //       `${verifyRequest.callbackUrl}${responseToken}`,
+  //     );
+  //   } catch {
+  //     // TODO: handle bad flow
+  //   }
+  // }
+
+  // @Post('jolocom/disclose')
+  // async handleJolocomVerifyDisclosure(
+  //   @Query('verifyRequestId', GetVerifyRequestPipe)
+  //   verifyRequest: CredentialVerifyRequest,
+  //   @Body('token')
+  //   jolocomJwt: string,
+  // ) {
+  //   try {
+  //     // TODO: Abstract this properly (also for jolocom)
+  //     const result = await this.jolocomService.handleJolocomDisclosure(
+  //       verifyRequest,
+  //       jolocomJwt,
+  //     );
+
+  //     console.log('Got result', result);
+
+  //     const responseToken = this.requestsService.encodeVerifyRequestResponse(
+  //       verifyRequest,
+  //       ResponseStatus.success,
+  //       'jolocom',
+  //       result,
+  //     );
+
+  //     this.gateway.sendRedirectResponse(
+  //       verifyRequest.requestId,
+  //       ResponseStatus.success,
+  //       `${verifyRequest.callbackUrl}${responseToken}`,
+  //     );
+  //   } catch {
+  //     // TODO: handle bad flow
+  //   }
+  // }
 }

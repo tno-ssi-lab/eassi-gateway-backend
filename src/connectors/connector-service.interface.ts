@@ -46,4 +46,14 @@ export interface ConnectorService {
    * @returns All data needed for the front-end to set up a verifying session.
    */
   handleVerifyCredentialRequest(request: CredentialVerifyRequest): Promise<any>;
+
+  /**
+   * Handle the disclosure of credentials, i.e. a reponse to a verify request.
+   *
+   * @returns All data needed to forward to the client.
+   */
+  handleVerifyCredentialDisclosure(
+    request: CredentialVerifyRequest,
+    body: unknown,
+  ): Promise<any>;
 }

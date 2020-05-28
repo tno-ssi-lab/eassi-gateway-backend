@@ -63,10 +63,7 @@ export class RequestsService {
   async findVerifyRequestByRequestId(requestId: string) {
     const [type, uuid] = requestId.split(':');
 
-    console.log(type, CredentialVerifyRequest.requestType, uuid);
-
     if (type !== CredentialVerifyRequest.requestType || !uuid) {
-      console.log(type !== CredentialVerifyRequest.requestType, !uuid);
       return null;
     }
 
@@ -237,8 +234,8 @@ export class RequestsService {
   encodeVerifyRequestResponse(
     verifyRequest: CredentialVerifyRequest,
     status: ResponseStatus,
-    connectorName: string,
-    data: any,
+    connectorName?: string,
+    data?: any,
   ) {
     return this.encodeResponse(
       {
@@ -258,7 +255,7 @@ export class RequestsService {
   encodeIssueRequestResponse(
     issueRequest: CredentialIssueRequest,
     status: ResponseStatus,
-    connectorName: string,
+    connectorName?: string,
   ) {
     return this.encodeResponse(
       {
