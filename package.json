@@ -31,7 +31,7 @@
     "@types/uuid": "^7.0.3",
     "class-transformer": "^0.2.3",
     "class-validator": "^0.12.2",
-    "jolocom-lib": "^4.1.0",
+    "jolocom-lib": "^4.2.8",
     "jsonwebtoken": "^8.5.1",
     "qrcode": "^1.4.4",
     "reflect-metadata": "^0.1.13",
