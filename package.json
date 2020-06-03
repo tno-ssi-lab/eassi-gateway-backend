@@ -33,6 +33,7 @@
     "class-validator": "^0.12.2",
     "jolocom-lib": "^4.2.8",
     "jsonwebtoken": "^8.5.1",
+    "pg": "^8.2.1",
     "qrcode": "^1.4.4",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
