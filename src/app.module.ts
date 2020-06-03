@@ -12,8 +12,8 @@ import { ConfigModule } from './config/config.module';
   imports: [
     ConfigModule,
     TypeOrmModule.forRoot({
-      type: 'sqlite',
-      database: '/data/dev.sqlite3',
+      type: 'postgres',
+      url: process.env.DATABASE_URL,
       synchronize: true,
       autoLoadEntities: true,
     }),
