@@ -1,0 +1,21 @@
+FROM node:10
+
+RUN mkdir -p /app/node_modules && chown -R node:node /app
+
+USER node
+
+# Create Directory for the Container
+WORKDIR /app
+
+# Only copy the package.json and yarn.lock to work directory
+COPY --chown=node:node package.json package-lock.json ./
+
+# Install all Packages
+RUN npm install
+
+# Copy all other source code to work directory
+COPY --chown=node:node . ./
+
+RUN npm run build
+
+CMD [ "npm", "run", "start:prod" ]
