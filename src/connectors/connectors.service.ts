@@ -1,10 +1,13 @@
 import { Injectable } from '@nestjs/common';
+
 import { JolocomService } from './jolocom/jolocom.service';
 import { IrmaService } from './irma/irma.service';
+import { IndyService } from './indy/indy.service';
+
 import { ConnectorService } from './connector-service.interface';
 import { Organization } from '../organizations/organization.entity';
-import { CredentialIssueRequest } from 'src/requests/credential-issue-request.entity';
-import { CredentialVerifyRequest } from 'src/requests/credential-verify-request.entity';
+import { CredentialIssueRequest } from '../requests/credential-issue-request.entity';
+import { CredentialVerifyRequest } from '../requests/credential-verify-request.entity';
 
 @Injectable()
 export class ConnectorsService {
@@ -13,9 +16,11 @@ export class ConnectorsService {
   constructor(
     private jolocomService: JolocomService,
     private irmaService: IrmaService,
+    private indyService: IndyService,
   ) {
     this.connectors.push(this.jolocomService);
     this.connectors.push(this.irmaService);
+    this.connectors.push(this.indyService);
   }
 
   getConnector(name: string) {
