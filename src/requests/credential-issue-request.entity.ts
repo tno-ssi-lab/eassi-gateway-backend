@@ -9,6 +9,7 @@ import { CredentialRequest } from './credential-request.interface';
 import { Organization } from '../organizations/organization.entity';
 import { CredentialType } from '../types/credential-type.entity';
 import { CredentialData } from './credential-issue-request-data.dto';
+import { Type } from 'class-transformer';
 
 @Entity()
 export class CredentialIssueRequest implements CredentialRequest {
@@ -40,6 +41,7 @@ export class CredentialIssueRequest implements CredentialRequest {
   @Column()
   hash: string;
 
+  @Type(() => Organization)
   @ManyToOne(
     () => Organization,
     organization => organization.issueRequests,

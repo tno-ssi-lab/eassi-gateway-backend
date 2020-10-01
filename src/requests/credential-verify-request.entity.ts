@@ -10,6 +10,7 @@ import { CredentialRequest } from './credential-request.interface';
 import { Organization } from '../organizations/organization.entity';
 import { CredentialType } from 'src/types/credential-type.entity';
 import { JolocomCredentialRequestToken } from 'src/connectors/jolocom/jolocom-credential-request-token.entity';
+import { Type } from 'class-transformer';
 
 export interface CredentialVerifyRequestData {
   jti: string;
@@ -45,6 +46,7 @@ export class CredentialVerifyRequest implements CredentialRequest {
   @Column()
   hash: string;
 
+  @Type(() => Organization)
   @ManyToOne(
     () => Organization,
     organization => organization.verifyRequests,

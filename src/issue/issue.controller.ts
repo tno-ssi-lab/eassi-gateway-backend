@@ -1,4 +1,13 @@
-import { Controller, Get, Query, Param, Body, Post } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  Param,
+  Body,
+  Post,
+  ClassSerializerInterceptor,
+  UseInterceptors,
+} from '@nestjs/common';
 
 import {
   DecodeIssueRequestPipe,
@@ -9,7 +18,9 @@ import { ConnectorsService } from '../connectors/connectors.service';
 import { GetConnectorPipe } from '../connectors/get-connector.pipe';
 import { ConnectorService } from '../connectors/connector-service.interface';
 import { JolocomService } from 'src/connectors/jolocom/jolocom.service';
+import { classToPlain } from 'class-transformer';
 
+@UseInterceptors(ClassSerializerInterceptor)
 @Controller('api/issue')
 export class IssueController {
   constructor(
@@ -23,7 +34,7 @@ export class IssueController {
     issueRequest: CredentialIssueRequest,
   ) {
     return {
-      issueRequest,
+      issueRequest: classToPlain(issueRequest),
       availableConnectors: await this.connectorsService
         .availableIssueConnectors(issueRequest)
         .then(cs => cs.map(c => c.name)),

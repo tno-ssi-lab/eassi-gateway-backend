@@ -1,7 +1,15 @@
-import { Controller, Get, Body, Post } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Body,
+  Post,
+  UseInterceptors,
+  ClassSerializerInterceptor,
+} from '@nestjs/common';
 import { OrganizationsService } from './organizations.service';
 import { CreateOrganizationDto } from './create-organization.dto';
 
+@UseInterceptors(ClassSerializerInterceptor)
 @Controller('api/organizations')
 export class OrganizationsController {
   constructor(private organizationsService: OrganizationsService) {}

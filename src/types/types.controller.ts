@@ -1,7 +1,15 @@
-import { Controller, Post, Body, Get } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  ClassSerializerInterceptor,
+  UseInterceptors,
+} from '@nestjs/common';
 import { TypesService } from './types.service';
 import { CreateTypeDto } from './create-type.dto';
 
+@UseInterceptors(ClassSerializerInterceptor)
 @Controller('api/types')
 export class TypesController {
   constructor(private typesService: TypesService) {}
