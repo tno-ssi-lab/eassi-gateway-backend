@@ -193,7 +193,7 @@ export class JolocomService implements ConnectorService {
     return this.typesRepository.find();
   }
 
-  async createType(typeData) {
+  async createType(typeData: Partial<JolocomCredentialType>) {
     const type = new JolocomCredentialType();
     type.type = typeData.type;
     type.name = typeData.name;

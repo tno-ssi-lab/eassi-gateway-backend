@@ -26,7 +26,7 @@ export class JolocomCredentialType {
 
   @OneToMany(
     () => CredentialType,
-    type => type.organization,
+    type => type.jolocomType,
   )
   credentialTypes: CredentialType[];
 
