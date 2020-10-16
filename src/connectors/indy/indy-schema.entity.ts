@@ -15,10 +15,10 @@ export class IndySchema {
   @Column('simple-json')
   attributes: string[];
 
-  @Column()
+  @Column({ nullable: true })
   indySchemaId: string;
 
-  @Column()
+  @Column({ nullable: true })
   indyCredentialDefinitionId: string;
 
   @OneToMany(

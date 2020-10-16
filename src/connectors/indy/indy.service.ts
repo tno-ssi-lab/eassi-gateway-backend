@@ -1,12 +1,24 @@
-import { Injectable, NotImplementedException } from '@nestjs/common';
+import { Injectable, Logger, NotImplementedException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { Organization } from '../../organizations/organization.entity';
 import { CredentialIssueRequest } from '../../requests/credential-issue-request.entity';
 import { CredentialVerifyRequest } from '../../requests/credential-verify-request.entity';
 import { ConnectorService } from '../connector-service.interface';
+import { IndySchema } from './indy-schema.entity';
 
 @Injectable()
 export class IndyService implements ConnectorService {
   name = 'indy';
+
+  private logger: Logger;
+
+  constructor(
+    @InjectRepository(IndySchema)
+    private schemasRepository: Repository<IndySchema>, // private configService: ConfigService,
+  ) {
+    this.logger = new Logger(IndyService.name);
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async registerOrganization(organization: Organization) {
@@ -37,5 +49,17 @@ export class IndyService implements ConnectorService {
 
   async handleVerifyCredentialDisclosure() {
     throw new NotImplementedException('Cannot verify Indy credentials');
+  }
+
+  async findAllSchemas() {
+    return this.schemasRepository.find();
+  }
+
+  async createSchema(schemaData: Partial<IndySchema>) {
+    const schema = new IndySchema();
+    schema.name = schemaData.name;
+    schema.version = schemaData.version;
+    schema.attributes = schemaData.attributes;
+    return this.schemasRepository.save(schema);
   }
 }

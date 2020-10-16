@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsString, Matches } from 'class-validator';
 
-export class CreateJolocomTypeDto {
+export class CreateIndySchemaDto {
   @IsString()
   @IsNotEmpty()
   name: string;
