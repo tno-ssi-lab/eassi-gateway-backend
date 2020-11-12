@@ -10,6 +10,7 @@ import { JolocomCredentialType } from 'src/connectors/jolocom/jolocom-credential
 import { CredentialVerifyRequest } from 'src/requests/credential-verify-request.entity';
 import { CredentialIssueRequest } from 'src/requests/credential-issue-request.entity';
 import { Type } from 'class-transformer';
+import { IndySchema } from 'src/connectors/indy/indy-schema.entity';
 
 @Entity()
 export class CredentialType {
@@ -35,6 +36,16 @@ export class CredentialType {
     },
   )
   jolocomType: JolocomCredentialType;
+
+  @ManyToOne(
+    () => IndySchema,
+    schema => schema.credentialTypes,
+    {
+      nullable: true,
+      eager: true,
+    },
+  )
+  indySchema: IndySchema;
 
   // TODO: Maybe use simplejson and make it an IrmaDisjunction?
   @Column({ nullable: true })
