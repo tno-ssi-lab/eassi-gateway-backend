@@ -1,11 +1,5 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  Index,
-} from 'typeorm';
-import { CredentialVerifyRequest } from 'src/requests/credential-verify-request.entity';
+import { randomBytes } from 'crypto';
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 export interface IndyConnectionResponse {
   connection_id: string;
@@ -20,8 +14,9 @@ export interface IndyConnectionResponse {
   alias: string;
 }
 
+const INDY_INVITATION_IDENTIFIER_BYTES = 6;
+
 @Entity()
-@Index(['verifyRequest'], { unique: true })
 export class IndyInvitation {
   @PrimaryGeneratedColumn()
   id: number;
@@ -29,12 +24,13 @@ export class IndyInvitation {
   @Column()
   connectionId: string;
 
+  @Column({ unique: true })
+  identifier: string;
+
   @Column('simple-json')
   connectionResponse: IndyConnectionResponse;
 
-  @ManyToOne(
-    () => CredentialVerifyRequest,
-    vr => vr.jolocomTokens,
-  )
-  verifyRequest: CredentialVerifyRequest;
+  static randomIdentifier() {
+    return randomBytes(INDY_INVITATION_IDENTIFIER_BYTES).toString('base64');
+  }
 }

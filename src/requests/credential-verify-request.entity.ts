@@ -63,11 +63,6 @@ export class CredentialVerifyRequest implements CredentialRequest {
   )
   jolocomTokens: JolocomCredentialRequestToken[];
 
-  @OneToMany(
-    () => IndyInvitation,
-    invitation => invitation.verifyRequest,
-  )
-  indyInvitations: IndyInvitation[];
 
   static requestType: string;
 
