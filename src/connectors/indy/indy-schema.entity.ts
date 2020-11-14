@@ -1,6 +1,22 @@
 import { CredentialType } from 'src/types/credential-type.entity';
 import { PrimaryGeneratedColumn, Column, OneToMany, Entity } from 'typeorm';
 
+export interface IndySchemaResponse {
+  schema_id: string;
+  schema: {
+    ver: string;
+    id: string;
+    name: string;
+    version: string;
+    attrNames: string[];
+    seqNo: number;
+  };
+}
+
+export interface IndyCredDefResponse {
+  credential_definition_id: string;
+}
+
 @Entity()
 export class IndySchema {
   @PrimaryGeneratedColumn()
@@ -26,4 +42,12 @@ export class IndySchema {
     type => type.indySchema,
   )
   credentialTypes: CredentialType[];
+
+  get schemaIssuerDid() {
+    return this.indySchemaId.split(':')[0];
+  }
+
+  get credDefIssuerDid() {
+    return this.indyCredentialDefinitionId.split(':')[0];
+  }
 }

@@ -17,11 +17,14 @@ export class JolocomWallet {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ update: false })
+  @Column({ nullable: true })
   encryptedSeedHex: string;
 
   @Column({ update: false })
   password: string;
+
+  @Column({ nullable: true })
+  did: string;
 
   @OneToOne(
     () => Organization,

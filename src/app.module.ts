@@ -7,16 +7,12 @@ import { IssueModule } from './issue/issue.module';
 import { VerifyModule } from './verify/verify.module';
 import { UtilsModule } from './utils/utils.module';
 import { ConfigModule } from './config/config.module';
+import * as ormConfig from './ormconfig';
 
 @Module({
   imports: [
     ConfigModule,
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      url: process.env.DATABASE_URL,
-      synchronize: true,
-      autoLoadEntities: true,
-    }),
+    TypeOrmModule.forRoot(ormConfig),
     IssueModule,
     VerifyModule,
     UtilsModule,

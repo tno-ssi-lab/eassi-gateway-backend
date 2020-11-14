@@ -13,6 +13,10 @@ export class CreateTypeDto {
   @IsNumber()
   jolocomCredentialTypeId: number;
 
+  @IsOptional()
+  @IsNumber()
+  indySchemaId: number;
+
   @IsNumber()
   organizationId: number;
 }

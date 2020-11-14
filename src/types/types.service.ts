@@ -4,10 +4,12 @@ import { CredentialType } from './credential-type.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Organization } from 'src/organizations/organization.entity';
 import { JolocomCredentialType } from 'src/connectors/jolocom/jolocom-credential-type.entity';
+import { IndySchema } from 'src/connectors/indy/indy-schema.entity';
 
 interface CreateData {
   organizationId: number | string;
-  jolocomCredentialTypeId: number | string;
+  jolocomCredentialTypeId?: number | string;
+  indySchemaId?: number | string;
   irmaType: string;
   type: string;
 }
@@ -21,6 +23,8 @@ export class TypesService {
     private organizationsRepository: Repository<Organization>,
     @InjectRepository(JolocomCredentialType)
     private jolocomTypeRepository: Repository<JolocomCredentialType>,
+    @InjectRepository(IndySchema)
+    private indySchemasRepository: Repository<IndySchema>,
   ) {}
 
   async findAll() {
@@ -32,15 +36,19 @@ export class TypesService {
   async create({
     organizationId,
     jolocomCredentialTypeId,
+    indySchemaId,
     irmaType,
     type,
   }: CreateData) {
     const organization = await this.organizationsRepository.findOneOrFail(
       organizationId,
     );
-    const jolocomCredentialType = jolocomCredentialTypeId ? await this.jolocomTypeRepository.findOneOrFail(
-      jolocomCredentialTypeId,
-    ): null;
+    const jolocomCredentialType = jolocomCredentialTypeId
+      ? await this.jolocomTypeRepository.findOneOrFail(jolocomCredentialTypeId)
+      : null;
+    const indySchema = indySchemaId
+      ? await this.indySchemasRepository.findOneOrFail(indySchemaId)
+      : null;
 
     const credentialType = new CredentialType();
 
@@ -48,6 +56,7 @@ export class TypesService {
     credentialType.irmaType = irmaType;
     credentialType.organization = organization;
     credentialType.jolocomType = jolocomCredentialType;
+    credentialType.indySchema = indySchema;
 
     return this.typesRespository.save(credentialType);
   }

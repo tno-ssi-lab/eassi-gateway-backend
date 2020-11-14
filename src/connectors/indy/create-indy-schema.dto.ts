@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, Matches } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, Matches } from 'class-validator';
 
 export class CreateIndySchemaDto {
   @IsString()
@@ -12,4 +12,14 @@ export class CreateIndySchemaDto {
   @IsString({ each: true })
   @IsNotEmpty({ each: true })
   attributes: string[];
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  indySchemaId?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  indyCredentialDefinitionId?: string;
 }

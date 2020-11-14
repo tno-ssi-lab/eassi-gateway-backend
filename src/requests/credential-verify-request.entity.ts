@@ -11,6 +11,7 @@ import { Organization } from '../organizations/organization.entity';
 import { CredentialType } from 'src/types/credential-type.entity';
 import { JolocomCredentialRequestToken } from 'src/connectors/jolocom/jolocom-credential-request-token.entity';
 import { Type } from 'class-transformer';
+import { IndyInvitation } from 'src/connectors/indy/indy-invitation.entity';
 
 export interface CredentialVerifyRequestData {
   jti: string;
@@ -61,6 +62,7 @@ export class CredentialVerifyRequest implements CredentialRequest {
     token => token.verifyRequest,
   )
   jolocomTokens: JolocomCredentialRequestToken[];
+
 
   static requestType: string;
 

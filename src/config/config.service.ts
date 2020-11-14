@@ -13,4 +13,12 @@ export class ConfigService {
   getUrl(path: string): string {
     return new URL(path, this.getServerBaseUrl()).toString();
   }
+
+  getIndyUrl(): string {
+    return process.env.ACAPY_ADMIN_URL || 'http://acapy:9001';
+  }
+
+  getIndyDID(): string {
+    return process.env.ACAPY_INDY_DID || '';
+  }
 }
