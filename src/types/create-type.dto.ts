@@ -9,6 +9,7 @@ export class CreateTypeDto {
   @IsString()
   irmaType: string;
 
+  @IsOptional()
   @IsNumber()
   jolocomCredentialTypeId: number;
 

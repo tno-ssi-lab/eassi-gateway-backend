@@ -38,9 +38,9 @@ export class TypesService {
     const organization = await this.organizationsRepository.findOneOrFail(
       organizationId,
     );
-    const jolocomCredentialType = await this.jolocomTypeRepository.findOneOrFail(
+    const jolocomCredentialType = jolocomCredentialTypeId ? await this.jolocomTypeRepository.findOneOrFail(
       jolocomCredentialTypeId,
-    );
+    ): null;
 
     const credentialType = new CredentialType();
 
