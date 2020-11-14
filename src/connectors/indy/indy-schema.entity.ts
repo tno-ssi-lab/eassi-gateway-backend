@@ -42,4 +42,12 @@ export class IndySchema {
     type => type.indySchema,
   )
   credentialTypes: CredentialType[];
+
+  get schemaIssuerDid() {
+    return this.indySchemaId.split(':')[0];
+  }
+
+  get credDefIssuerDid() {
+    return this.indyCredentialDefinitionId.split(':')[0];
+  }
 }
