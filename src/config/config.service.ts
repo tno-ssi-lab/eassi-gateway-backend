@@ -17,4 +17,8 @@ export class ConfigService {
   getIndyUrl(): string {
     return process.env.ACAPY_ADMIN_URL || 'http://acapy:9001';
   }
+
+  getIndyDID(): string {
+    return process.env.ACAPY_INDY_DID || '';
+  }
 }
