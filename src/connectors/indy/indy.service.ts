@@ -342,7 +342,7 @@ export class IndyService implements ConnectorService {
   }
 
   protected indyUrl(path: string) {
-    return `${this.configService.getIndyUrl()}/${path}`;
+    return new URL(path, this.configService.getIndyUrl()).toString();
   }
 
   protected getNonce(length = 3) {
