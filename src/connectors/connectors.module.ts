@@ -4,6 +4,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConnectorsService } from './connectors.service';
 import { GetConnectorPipe } from './get-connector.pipe';
 
+import { IdaModule } from './ida/ida.module';
+import { IdaService } from './ida/ida.service';
 import { IndyModule } from './indy/indy.module';
 import { IndyService } from './indy/indy.service';
 import { IrmaModule } from './irma/irma.module';
@@ -14,14 +16,14 @@ import { JolocomService } from './jolocom/jolocom.service';
 export const CONNECTOR_SERVICES = 'CONNECTOR_SERVICES';
 
 @Module({
-  imports: [JolocomModule, IrmaModule, IndyModule, TypeOrmModule.forFeature()],
+  imports: [JolocomModule, IdaModule, IrmaModule, IndyModule, TypeOrmModule.forFeature()],
   providers: [
     ConnectorsService,
     GetConnectorPipe,
     {
       provide: CONNECTOR_SERVICES,
-      useFactory: (jolocom, irma, indy) => [jolocom, irma, indy],
-      inject: [JolocomService, IrmaService, IndyService],
+      useFactory: (jolocom, ida, irma, indy) => [jolocom, ida, irma, indy],
+      inject: [JolocomService, IdaService, IrmaService, IndyService],
     },
   ],
   exports: [
@@ -29,6 +31,7 @@ export const CONNECTOR_SERVICES = 'CONNECTOR_SERVICES';
     ConnectorsService,
     GetConnectorPipe,
     JolocomModule,
+    IdaModule,
     IrmaModule,
     IndyModule,
   ],
