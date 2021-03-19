@@ -14,7 +14,7 @@ export class OrganizationsService {
     private organizationsRepository: Repository<Organization>,
     private connectorsService: ConnectorsService,
   ) {
-    this.logger = new Logger(Organization.name);
+    this.logger = new Logger(OrganizationsService.name);
   }
 
   async findAll() {

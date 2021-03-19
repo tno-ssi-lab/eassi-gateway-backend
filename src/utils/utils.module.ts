@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
 import { UtilsController } from './utils.controller';
 import { OrganizationsModule } from 'src/organizations/organizations.module';
-import { RequestsModule } from 'src/requests/requests.module';
 import { UtilsService } from './utils.service';
 
 @Module({
-  imports: [RequestsModule, OrganizationsModule],
+  imports: [OrganizationsModule],
   controllers: [UtilsController],
   providers: [UtilsService],
 })

@@ -18,13 +18,13 @@ interface CreateData {
 export class TypesService {
   constructor(
     @InjectRepository(CredentialType)
-    private typesRespository: Repository<CredentialType>,
+    private readonly typesRespository: Repository<CredentialType>,
     @InjectRepository(Organization)
-    private organizationsRepository: Repository<Organization>,
+    private readonly organizationsRepository: Repository<Organization>,
     @InjectRepository(JolocomCredentialType)
-    private jolocomTypeRepository: Repository<JolocomCredentialType>,
+    private readonly jolocomTypeRepository: Repository<JolocomCredentialType>,
     @InjectRepository(IndySchema)
-    private indySchemasRepository: Repository<IndySchema>,
+    private readonly indySchemasRepository: Repository<IndySchema>,
   ) {}
 
   async findAll() {

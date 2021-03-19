@@ -5,7 +5,7 @@ import {
   CredentialRenderTypes,
   CredentialOfferRenderInfo,
   CredentialOfferMetadata,
-} from 'jolocom-lib/js/interactionTokens/interactionTokens.types';
+} from '@jolocom/protocol-ts';
 
 @Entity()
 export class JolocomCredentialType {
@@ -24,10 +24,7 @@ export class JolocomCredentialType {
   @Column('simple-json')
   claimInterface: BaseMetadata['claimInterface'];
 
-  @OneToMany(
-    () => CredentialType,
-    type => type.jolocomType,
-  )
+  @OneToMany(() => CredentialType, (type) => type.jolocomType)
   credentialTypes: CredentialType[];
 
   get schema(): BaseMetadata {
