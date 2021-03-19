@@ -7,10 +7,7 @@ import { Organization } from './organization.entity';
 import { ConnectorsModule } from 'src/connectors/connectors.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Organization]),
-    forwardRef(() => ConnectorsModule),
-  ],
+  imports: [TypeOrmModule.forFeature([Organization]), ConnectorsModule],
   controllers: [OrganizationsController],
   providers: [OrganizationsService],
   exports: [OrganizationsService, TypeOrmModule],

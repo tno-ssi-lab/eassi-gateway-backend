@@ -11,6 +11,7 @@ import { CredentialVerifyRequest } from 'src/requests/credential-verify-request.
 import { CredentialIssueRequest } from 'src/requests/credential-issue-request.entity';
 import { Type } from 'class-transformer';
 import { IndySchema } from 'src/connectors/indy/indy-schema.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Entity()
 export class CredentialType {
@@ -21,15 +22,12 @@ export class CredentialType {
   type: string;
 
   @Type(() => Organization)
-  @ManyToOne(
-    () => Organization,
-    organization => organization.credentialTypes,
-  )
+  @ManyToOne(() => Organization, (organization) => organization.credentialTypes)
   organization: Organization;
 
   @ManyToOne(
     () => JolocomCredentialType,
-    credentialType => credentialType.credentialTypes,
+    (credentialType) => credentialType.credentialTypes,
     {
       nullable: true,
       eager: true,
@@ -37,29 +35,19 @@ export class CredentialType {
   )
   jolocomType: JolocomCredentialType;
 
-  @ManyToOne(
-    () => IndySchema,
-    schema => schema.credentialTypes,
-    {
-      nullable: true,
-      eager: true,
-    },
-  )
+  @ManyToOne(() => IndySchema, (schema) => schema.credentialTypes, {
+    nullable: true,
+    eager: true,
+  })
   indySchema: IndySchema;
 
   // TODO: Maybe use simplejson and make it an IrmaDisjunction?
   @Column({ nullable: true })
   irmaType: string;
 
-  @OneToMany(
-    () => CredentialVerifyRequest,
-    request => request.type,
-  )
+  @OneToMany(() => CredentialVerifyRequest, (request) => request.type)
   verifyRequests: CredentialVerifyRequest[];
 
-  @OneToMany(
-    () => CredentialIssueRequest,
-    request => request.type,
-  )
+  @OneToMany(() => CredentialIssueRequest, (request) => request.type)
   issueRequests: CredentialIssueRequest[];
 }

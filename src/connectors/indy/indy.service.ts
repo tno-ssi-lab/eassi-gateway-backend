@@ -62,8 +62,7 @@ export class IndyService implements ConnectorService {
     private schemasRepository: Repository<IndySchema>,
     @InjectRepository(IndyInvitation)
     private invitationsRepository: Repository<IndyInvitation>,
-    private httpService: HttpService,
-    private requestsService: RequestsService,
+    private httpService: HttpService, // private requestsService: RequestsService,
   ) {
     this.logger = new Logger(IndyService.name);
   }
@@ -124,12 +123,11 @@ export class IndyService implements ConnectorService {
 
     const requestedAttributes = {};
 
-    schema.attributes.forEach(att => {
+    schema.attributes.forEach((att) => {
       requestedAttributes[att] = {
         name: att,
         restrictions: [
           {
-            // eslint-disable-next-line @typescript-eslint/camelcase
             cred_def_id: schema.indyCredentialDefinitionId,
           },
         ],
@@ -138,15 +136,11 @@ export class IndyService implements ConnectorService {
 
     const requestData = {
       comment: verifyRequest.requestId,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       connection_id: invitation.connectionId,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       proof_request: {
         name: 'Proof request',
         nonce: this.getNonce(),
-        // eslint-disable-next-line @typescript-eslint/camelcase
         requested_attributes: requestedAttributes,
-        // eslint-disable-next-line @typescript-eslint/camelcase
         requested_predicates: {},
         version: '1.0',
       },
@@ -167,7 +161,7 @@ export class IndyService implements ConnectorService {
     const invitation = await this.getInvitationByIdentifier(identifier);
     const schema = issueRequest.type.indySchema;
 
-    const proposal = schema.attributes.map(att => {
+    const proposal = schema.attributes.map((att) => {
       return {
         name: att,
         value: (issueRequest.data[att] || '').toString(),
@@ -178,27 +172,18 @@ export class IndyService implements ConnectorService {
 
     return this.httpService
       .post(this.indyUrl('issue-credential/send'), {
-        // eslint-disable-next-line @typescript-eslint/camelcase
         auto_remove: false,
         comment: issueRequest.requestId,
-        // eslint-disable-next-line @typescript-eslint/camelcase
         connection_id: invitation.connectionId,
-        // eslint-disable-next-line @typescript-eslint/camelcase
         cred_def_id: schema.indyCredentialDefinitionId,
-        // eslint-disable-next-line @typescript-eslint/camelcase
         credential_proposal: {
           '@type': 'issue-credential/1.0/credential-preview',
           attributes: proposal,
         },
-        // eslint-disable-next-line @typescript-eslint/camelcase
         issuer_did: schema.credDefIssuerDid,
-        // eslint-disable-next-line @typescript-eslint/camelcase
         schema_id: schema.indySchemaId,
-        // eslint-disable-next-line @typescript-eslint/camelcase
         schema_issuer_did: schema.schemaIssuerDid,
-        // eslint-disable-next-line @typescript-eslint/camelcase
         schema_name: schema.name,
-        // eslint-disable-next-line @typescript-eslint/camelcase
         schema_version: schema.version,
         trace: false,
       })
@@ -206,35 +191,27 @@ export class IndyService implements ConnectorService {
   }
 
   async handleVerifyCredentialDisclosureFromWebhook(
+    verifyRequest: CredentialVerifyRequest,
     data: IndyPresentProofResponse,
   ) {
-    const verifyRequest = await this.requestsService.findVerifyRequestByRequestId(
-      data.presentation_request_dict.comment,
-    );
-
-    return {
-      verifyRequest,
-      data: this.extractData(data),
-    };
+    // const verifyRequest = await this.requestsService.findVerifyRequestByRequestId(
+    //   data.presentation_request_dict.comment,
+    // );
+    return this.extractData(data);
   }
 
   async handleIssueCredentialDisclosureFromWebhook(
+    issueRequest: CredentialIssueRequest,
     data: IndyIssueCredentialResponse,
   ) {
-    const issueRequest = await this.requestsService.findIssueRequestByRequestId(
-      data.credential_proposal_dict.comment,
-    );
-
-    return {
-      issueRequest,
-    };
+    return;
   }
 
   protected extractData(data: IndyPresentProofResponse) {
     const extracted = {};
     const revealedAttrs = data.presentation.requested_proof.revealed_attrs;
 
-    Object.keys(revealedAttrs).forEach(key => {
+    Object.keys(revealedAttrs).forEach((key) => {
       extracted[key] = revealedAttrs[key].raw;
     });
 
@@ -297,9 +274,7 @@ export class IndyService implements ConnectorService {
       const schemaResponse = await this.httpService
         .post<IndySchemaResponse>(this.indyUrl('schemas'), {
           attributes: schema.attributes,
-          // eslint-disable-next-line @typescript-eslint/camelcase
           schema_name: schema.name,
-          // eslint-disable-next-line @typescript-eslint/camelcase
           schema_version: schema.version,
         })
         .toPromise();
@@ -319,11 +294,8 @@ export class IndyService implements ConnectorService {
 
       const credDefResponse = await this.httpService
         .post<IndyCredDefResponse>(this.indyUrl('credential-definitions'), {
-          // eslint-disable-next-line @typescript-eslint/camelcase
           revocation_registry_size: 1000,
-          // eslint-disable-next-line @typescript-eslint/camelcase
           schema_id: schema.indySchemaId,
-          // eslint-disable-next-line @typescript-eslint/camelcase
           support_revocation: false,
           tag: 'default',
         })

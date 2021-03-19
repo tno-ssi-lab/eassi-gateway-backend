@@ -21,7 +21,7 @@ import { ResponseStatus } from '../connectors/response-status.enum';
 
 import { CredentialIssueRequestData } from './credential-issue-request-data.dto';
 import { CredentialVerifyRequestData } from './credential-verify-request-data.dto';
-import { ClassType } from 'class-transformer/ClassTransformer';
+import { ClassConstructor } from 'class-transformer';
 import { CredentialRequest } from './credential-request.interface';
 import { CredentialRequestData } from './credential-request-data.interface';
 
@@ -125,8 +125,8 @@ export class RequestsService {
   >(
     jwt: string,
     repo: Repository<T>,
-    cls: ClassType<T>,
-    dtoCls: ClassType<V>,
+    cls: ClassConstructor<T>,
+    dtoCls: ClassConstructor<V>,
     subject: string,
     additionalFields: string[] = [],
   ): Promise<T> {
@@ -162,7 +162,7 @@ export class RequestsService {
     entity.type = type;
     entity.callbackUrl = requestData.callbackUrl;
 
-    additionalFields.forEach(field => (entity[field] = requestData[field]));
+    additionalFields.forEach((field) => (entity[field] = requestData[field]));
 
     // FIXME I don't know why we need to cast this so strangely :(
     return repo.save((entity as unknown) as DeepPartial<T>);
@@ -203,7 +203,10 @@ export class RequestsService {
       // casting fails. A more robust solution would be to use the
       // class-transformer and class-validator libraries to make sure the object
       // is valid.
-      return { request, requestor };
+      return {
+        request,
+        requestor,
+      };
     } catch (e) {
       this.logger.error(`Received error during JWT decoding: ${e}`);
       throw new InvalidRequestJWT('Could not decode request JWT');
@@ -216,14 +219,17 @@ export class RequestsService {
     return hash.digest('hex');
   }
 
-  async verifyWithClass<T, V>(cls: ClassType<T>, plain: V): Promise<T> {
+  async verifyWithClass<T extends object, V>(
+    cls: ClassConstructor<T>,
+    plain: V,
+  ): Promise<T> {
     const entity = plainToClass<T, V>(cls, plain);
     const errors = await validate(entity);
 
     if (errors.length > 0) {
       throw new Error(
         `Got errors during validation: ${errors
-          .map(e => e.toString())
+          .map((e) => e.toString())
           .join(', ')}`,
       );
     }

@@ -22,8 +22,8 @@ function omitId<T>(obj: T): Omit<T, 'id'> {
   const newObj = {};
 
   Object.keys(obj)
-    .filter(key => key !== 'id')
-    .forEach(key => {
+    .filter((key) => key !== 'id')
+    .forEach((key) => {
       newObj[key] = obj[key];
     });
 
@@ -83,10 +83,10 @@ export class JolocomService implements ConnectorService {
   async handleIssueCredentialRequest(request: CredentialIssueRequest) {
     const token = await this.createCredentialOfferToken(request);
 
-    this.logger.debug('Jolocom issue request token', token);
+    this.logger.debug(`Jolocom issue request token ${token.encode()}`);
 
     return {
-      qr: await QRCode.toDataURL(token),
+      qr: await QRCode.toDataURL(token.encode()),
     };
   }
 
@@ -102,10 +102,10 @@ export class JolocomService implements ConnectorService {
   async handleVerifyCredentialRequest(request: CredentialVerifyRequest) {
     const token = await this.createCredentialRequestToken(request);
 
-    this.logger.debug('Jolocom verify request token', token);
+    this.logger.debug(`Jolocom verify request token ${token.encode()}`);
 
     return {
-      qr: await QRCode.toDataURL(token),
+      qr: await QRCode.toDataURL(token.encode()),
     };
   }
 
@@ -188,6 +188,25 @@ export class JolocomService implements ConnectorService {
     return this.typesRepository.save(type);
   }
 
+  async getWalletPubkey(organization: Organization) {
+    const agent = await this.loadAgent(organization.jolocomWallet);
+    const pubKey = await agent.keyProvider.getPubKeyByController(
+      organization.jolocomWallet.password,
+      `${agent.keyProvider.id}#keys-2`,
+    );
+
+    return `0x${pubKey}`;
+  }
+
+  async redeployDDO(organization: Organization) {
+    const agent = await this.loadAgent(organization.jolocomWallet);
+    const jolo = this.jolocomSDK.didMethods.get('jolo');
+    return jolo.registrar.create(
+      agent.keyProvider,
+      organization.jolocomWallet.password,
+    );
+  }
+
   protected async createWalletForOrganization(organization: Organization) {
     this.logger.debug(`Creating wallet for ${organization.name}`);
     const wallet = new JolocomWallet();
@@ -208,7 +227,7 @@ export class JolocomService implements ConnectorService {
    */
   protected async createCredentialOfferToken(
     issueRequest: CredentialIssueRequest,
-  ): Promise<string> {
+  ) {
     const issuer = issueRequest.issuer;
     const wallet = issuer.jolocomWallet;
     const jolocomType = issueRequest.type.jolocomType;
@@ -291,9 +310,9 @@ export class JolocomService implements ConnectorService {
     });
 
     const token = new JolocomCredentialRequestToken();
-    token.nonce = 'nonce'; // credentialRequestToken.nonce;
+    token.nonce = credentialRequestToken.nonce;
     token.verifyRequest = verifyRequest;
-    token.token = credentialRequestToken;
+    token.token = credentialRequestToken.encode();
 
     // Save CredentialRequest because it is needed to verify a CredentialResponse token in the
     // next step. See method handleVerifyCredentialDisclosure().
@@ -303,7 +322,7 @@ export class JolocomService implements ConnectorService {
   }
 
   protected async createAgent(wallet: JolocomWallet) {
-    const agent = await this.jolocomSDK.createAgent(wallet.password, 'jun');
+    const agent = await this.jolocomSDK.createAgent(wallet.password, 'jolo');
     this.agentCache[agent.identityWallet.did] = agent;
     wallet.did = agent.identityWallet.did;
     this.logger.debug(`Created agent ${wallet.did}`);
