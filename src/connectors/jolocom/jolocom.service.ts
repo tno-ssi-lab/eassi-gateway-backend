@@ -19,7 +19,7 @@ import { CredentialRequestFlowState } from '@jolocom/sdk/js/interactionManager/t
 // const DEFAULT_EXPIRY_MS = 60 * 60 * 1000;
 
 function omitId<T>(obj: T): Omit<T, 'id'> {
-  const newObj = {};
+  const newObj = {} as Omit<T, 'id'>;
 
   Object.keys(obj)
     .filter((key) => key !== 'id')
@@ -27,7 +27,7 @@ function omitId<T>(obj: T): Omit<T, 'id'> {
       newObj[key] = obj[key];
     });
 
-  return newObj as Omit<T, 'id'>;
+  return newObj;
 }
 
 @Injectable()
@@ -118,60 +118,32 @@ export class JolocomService implements ConnectorService {
 
     const verifier = verifyRequest.verifier;
     const wallet = verifier.jolocomWallet;
-    const jolocomType = verifyRequest.type.jolocomType;
     const agent = await this.loadAgent(wallet);
 
     const interaction = await agent.processJWT(token);
 
-    const jolocomToken = await this.tokenRepository.findOneOrFail({
-      verifyRequest,
-    });
-
-    // const credentialResponse = jolocomCredentialResponse.interactionToken;
-
-    // We check against the request we created in a previous step
-    // const validResponse = credentialResponse.satisfiesRequest(
-    //   jolocomCredentialRequest.interactionToken,
-    // );
-
-    // if (!validResponse) {
-    //   throw new Error('Incorrect credential received');
-    // }
-
-    // this.logger.debug(JSON.stringify(credentialResponse));
-
-    this.logger.log(util.inspect(interaction));
-    this.logger.log(util.inspect(interaction.flow.getState()));
-
     const state = interaction.flow.getState() as CredentialRequestFlowState;
 
-    // Validate the provided credentials
+    // this.logger.log(util.inspect(state, false, 10));
+
     const providedCredentials = state.providedCredentials;
 
-    this.logger.log(util.inspect(providedCredentials));
+    let data = {};
 
-    // const signatureValidationResults = await JolocomLib.util.validateDigestables(
-    //   providedCredentials,
-    // );
+    providedCredentials.forEach((credentialResponse) => {
+      credentialResponse.suppliedCredentials.forEach((credential) => {
+        data = {
+          ...data,
+          ...omitId(credential.claim),
+        };
+      });
+    });
 
-    // if (signatureValidationResults.every(result => result === true)) {
-    //   let data = {};
+    this.logger.debug('Got data');
+    this.logger.debug(JSON.stringify(data));
 
-    //   providedCredentials.forEach(credential => {
-    //     data = {
-    //       ...data,
-    //       ...omitId(credential.claim),
-    //     };
-    //   });
-
-    //   this.logger.debug('Got data');
-    //   this.logger.debug(JSON.stringify(data));
-
-    //   // Handle the data in the provided credentials
-    //   return data;
-    // } else {
-    //   throw new Error('Not all provided credentials are valid');
-    // }
+    // Handle the data in the provided credentials
+    return data;
   }
 
   async findAllTypes() {
