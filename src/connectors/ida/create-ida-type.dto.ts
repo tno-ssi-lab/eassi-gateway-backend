@@ -15,7 +15,9 @@ export class CreateIdaTypeDto {
   context: string;
 
   // For now, this will be packaged inside a single IDA predicate
-  @IsString({ each: true })
-  @IsNotEmpty({ each: true })
-  atributes: string[];
+  @IsNotEmptyObject()
+  attributes: object[];
+  // @IsString({ each: true })
+  // @IsNotEmpty({ each: true })
+  // atributes: string[];
 }

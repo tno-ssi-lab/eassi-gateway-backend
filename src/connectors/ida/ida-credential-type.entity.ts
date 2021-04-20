@@ -34,8 +34,10 @@ export class IdaCredentialType {
   @Column({ unique: true })
   context: string;
 
-  @Column('simple-json')
-  attributes: string[];
+  // @Column('simple-json')
+  // attributes: string[];
+  @Column('jsonb', {nullable: true})
+  attributes: object[];
 
   @OneToMany(
     () => CredentialType,
