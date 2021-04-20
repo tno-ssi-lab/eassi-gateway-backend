@@ -74,6 +74,10 @@ export class IdaService implements ConnectorService {
     throw new NotImplementedException('Cannot verify IDA credentials yet');
   }
 
+  async findAllTypes() {
+    return this.typesRepository.find();
+  }
+
   async createType(typeData: Partial<IdaCredentialType>) {
     const type = new IdaCredentialType();
     type.name = typeData.name;
