@@ -5,6 +5,7 @@ import { Organization } from '../organizations/organization.entity';
 import { CredentialIssueRequest } from '../requests/credential-issue-request.entity';
 import { CredentialVerifyRequest } from '../requests/credential-verify-request.entity';
 import { CONNECTOR_SERVICES } from './connectors.module';
+import { IdaService } from './ida/ida.service';
 import { IndyService } from './indy/indy.service';
 import { IrmaService } from './irma/irma.service';
 import { JolocomService } from './jolocom/jolocom.service';
@@ -15,10 +16,12 @@ export class ConnectorsService {
 
   constructor(
     private jolocomService: JolocomService,
+    private idaService: IdaService,
     private irmaService: IrmaService,
     private indyService: IndyService,
   ) {
     this.connectors.push(this.jolocomService);
+    this.connectors.push(this.idaService);
     this.connectors.push(this.irmaService);
     this.connectors.push(this.indyService);
   }

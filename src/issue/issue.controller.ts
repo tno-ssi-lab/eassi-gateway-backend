@@ -18,6 +18,7 @@ import { ConnectorsService } from '../connectors/connectors.service';
 import { GetConnectorPipe } from '../connectors/get-connector.pipe';
 import { ConnectorService } from '../connectors/connector-service.interface';
 import { JolocomService } from 'src/connectors/jolocom/jolocom.service';
+import { IdaService } from 'src/connectors/ida/ida.service';
 import { classToPlain } from 'class-transformer';
 
 @UseInterceptors(ClassSerializerInterceptor)
@@ -26,6 +27,7 @@ export class IssueController {
   constructor(
     private connectorsService: ConnectorsService,
     private jolocomService: JolocomService,
+    private idaService: IdaService,
   ) {}
 
   @Get()
