@@ -44,6 +44,12 @@ export class OrganizationsService {
     await this.connectorsService.registerOrganization(organization);
 
     this.logger.debug(`Created organization (id: ${organization.id})`);
-    return organization;
+    // return organization;
+    return {
+      "id": organization.id,
+      "name": organization.name,
+      "uuid": organization.uuid,
+      "sharedSecret": organization.sharedSecret,
+    };
   }
 }
