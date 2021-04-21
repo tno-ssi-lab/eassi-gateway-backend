@@ -14,7 +14,7 @@ import { IdaCredentialRequestToken } from './ida-credential-request-token.entity
     ]),
   ],
   providers: [IdaService],
-  exports: [IdaService],
+  exports: [IdaService, TypeOrmModule],
   controllers: [IdaController],
 })
 export class IdaModule {}
