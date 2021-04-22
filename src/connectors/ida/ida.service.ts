@@ -1,5 +1,10 @@
 import * as QRCode from 'qrcode';
-import { Injectable, Logger, NotImplementedException } from '@nestjs/common';
+import { 
+  HttpService, 
+  Injectable, 
+  Logger, 
+  NotImplementedException 
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -26,6 +31,7 @@ export class IdaService implements ConnectorService {
     @InjectRepository(IdaCredentialRequestToken)
     private tokenRepository: Repository<IdaCredentialRequestToken>,
     private configService: ConfigService,
+    private httpService: HttpService, // private requestsService: RequestsService,
   ) {
     // this.registry = JolocomLib.registries.jolocom.create();
     this.logger = new Logger(IdaService.name);
@@ -58,7 +64,41 @@ export class IdaService implements ConnectorService {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async handleIssueCredentialRequest(issueRequest: CredentialIssueRequest) {
-    throw new NotImplementedException('Cannot issue IDA credentials yet');
+    // throw new NotImplementedException('Cannot issue IDA credentials yet');
+    const apiUrl = "https://0xvvmwxd6e.execute-api.eu-west-1.amazonaws.com/dev/sessions";
+    const headers = {
+      headers: {
+        'Content-Type': 'application/json', // afaik this one is not needed
+        'Authorization': `Basic `, // NOTE: The authentication credential should not be part a config file, and should not be checked in!
+      }
+    };
+
+    const context = issueRequest.type.idaType.context;
+    const data = issueRequest.data;
+
+    console.log(context);
+    console.log(data);
+
+    const body = {
+      toAttest: {
+          [context]: {
+              "predicates": data
+          }
+      },
+      toVerify: [],
+      userId: "abc"
+    };
+
+    const session = await this.httpService
+    .post(apiUrl, body, headers)
+    .toPromise();
+
+    const qrPayload = `{"inviteURL":"${session.data.qrcode}","operationType":"issuing", "documentName": "testdocument"}`;
+    console.log(qrPayload);
+
+    return {
+      qr: await QRCode.toDataURL(qrPayload),
+    };
   }
 
   async handleVerifyCredentialRequest(verifyRequest: CredentialVerifyRequest) {
