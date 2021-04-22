@@ -10,18 +10,20 @@ import { IrmaModule } from './irma/irma.module';
 import { IrmaService } from './irma/irma.service';
 import { JolocomModule } from './jolocom/jolocom.module';
 import { JolocomService } from './jolocom/jolocom.service';
+import { TrinsicModule } from './trinsic/trinsic.module';
+import { TrinsicService } from './trinsic/trinsic.service';
 
 export const CONNECTOR_SERVICES = 'CONNECTOR_SERVICES';
 
 @Module({
-  imports: [JolocomModule, IrmaModule, IndyModule, TypeOrmModule.forFeature()],
+  imports: [JolocomModule, IrmaModule, TrinsicModule, IndyModule, TypeOrmModule.forFeature()],
   providers: [
     ConnectorsService,
     GetConnectorPipe,
     {
       provide: CONNECTOR_SERVICES,
-      useFactory: (jolocom, irma, indy) => [jolocom, irma, indy],
-      inject: [JolocomService, IrmaService, IndyService],
+      useFactory: (jolocom, irma, indy, trinsic) => [jolocom, irma, indy, trinsic],
+      inject: [JolocomService, IrmaService, IndyService, TrinsicService],
     },
   ],
   exports: [
@@ -31,6 +33,7 @@ export const CONNECTOR_SERVICES = 'CONNECTOR_SERVICES';
     JolocomModule,
     IrmaModule,
     IndyModule,
+    TrinsicModule,
   ],
 })
 export class ConnectorsModule {}
