@@ -64,7 +64,6 @@ export class IdaService implements ConnectorService {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async handleIssueCredentialRequest(issueRequest: CredentialIssueRequest) {
-    // throw new NotImplementedException('Cannot issue IDA credentials yet');
     const apiUrl = "https://0xvvmwxd6e.execute-api.eu-west-1.amazonaws.com/dev/sessions";
     const headers = {
       headers: {
@@ -82,7 +81,7 @@ export class IdaService implements ConnectorService {
     const body = {
       toAttest: {
           [context]: {
-              "predicates": data
+              "predicates": {"credentialData": data}  // Extra nesting in credentialData to avoid having to deal with individual predicate names for the time being
           }
       },
       toVerify: [],
@@ -102,7 +101,45 @@ export class IdaService implements ConnectorService {
   }
 
   async handleVerifyCredentialRequest(verifyRequest: CredentialVerifyRequest) {
-    throw new NotImplementedException('Cannot verify IDA credentials yet');
+    // throw new NotImplementedException('Cannot verify IDA credentials yet');
+    const apiUrl = "https://0xvvmwxd6e.execute-api.eu-west-1.amazonaws.com/dev/sessions";
+    const headers = {
+      headers: {
+        'Content-Type': 'application/json', // afaik this one is not needed
+        'Authorization': `Basic `, // NOTE: The authentication credential should not be part a config file, and should not be checked in!
+      }
+    };
+
+    const context = verifyRequest.type.idaType.context;
+
+    console.log(context);
+
+    const body = {
+      toAttest: {},
+      toVerify: [
+          {
+              "@context": [context],
+              "predicate": "credentialData",  // Extra nesting in credentialData to avoid having to deal with individual predicate names for the time being
+              "correlationGroup": "1",
+              "allowedIssuers": [
+                  "did:eth:0x9e4751F9D87268108E0e824a714e225247731D0d"
+              ]
+          }
+      ],
+      "userId": "abc"
+    };
+
+    const session = await this.httpService
+    .post(apiUrl, body, headers)
+    .toPromise();
+
+    const qrPayload = `{"inviteURL":"${session.data.qrcode}","operationType":"verification", "documentName": "testdocument"}`;
+    console.log(qrPayload);
+    console.log(session.data.transactionId);
+
+    return {
+      qr: await QRCode.toDataURL(qrPayload),
+    };
   }
 
   async handleVerifyCredentialDisclosure(
