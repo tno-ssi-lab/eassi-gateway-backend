@@ -40,22 +40,20 @@ export class IdaService implements ConnectorService {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   canIssueCredentialRequest(request: CredentialIssueRequest) {
     // Issuing IDA crendentials still has to be implemented.
-    return false;
-    // if (!request.type) {
-    //   throw Error('Could not check type');
-    // }
+    if (!request.type) {
+      throw Error('Could not check type');
+    }
 
-    // return !!request.type.jolocomType;
+    return !!request.type.idaType;
   }
 
   canVerifyCredentialRequest(request: CredentialVerifyRequest) {
     // Verifying IDA crendentials still has to be implemented.
-    return false;
-    // if (!request.type) {
-    //   throw Error('Could not check type');
-    // }
+    if (!request.type) {
+      throw Error('Could not check type');
+    }
 
-    // return !!request.type.jolocomType;
+    return !!request.type.idaType;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
