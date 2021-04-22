@@ -146,7 +146,29 @@ export class IdaService implements ConnectorService {
     verifyRequest: CredentialVerifyRequest,
     body: { jwt: string },
   ) {
-    throw new NotImplementedException('Cannot verify IDA credentials yet');
+    // throw new NotImplementedException('Cannot verify IDA credentials yet');
+    const apiUrl = "https://0xvvmwxd6e.execute-api.eu-west-1.amazonaws.com/dev/verification-status/";
+    const headers = {
+      headers: {
+        'Content-Type': 'application/json', // afaik this one is not needed
+        'Authorization': `Basic `, // NOTE: The authentication credential should not be part a config file, and should not be checked in!
+      }
+    };
+
+    // This should be the transactionId received in handleVerifyCredentialRequest
+    const transactionId = "trx-956ba711-ff81-40a5-b9a9-49ba23ee7bdc";
+
+    const session = await this.httpService
+    .get(apiUrl+transactionId, headers)
+    .toPromise();
+
+    // console.log(session);
+
+    const data = session.data[0].details.predicateValues.credentialData;
+    console.log(data);
+
+    return data;
+    // return {"It": "works!"};
   }
 
   async findAllTypes() {
