@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { HttpModule, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { IdaService } from './ida.service';
@@ -12,6 +12,7 @@ import { IdaCredentialRequestToken } from './ida-credential-request-token.entity
       IdaCredentialType,
       IdaCredentialRequestToken,
     ]),
+    HttpModule
   ],
   providers: [IdaService],
   exports: [IdaService, TypeOrmModule],
