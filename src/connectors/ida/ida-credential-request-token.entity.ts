@@ -8,16 +8,13 @@ import {
 import { CredentialVerifyRequest } from 'src/requests/credential-verify-request.entity';
 
 @Entity()
-@Index(['nonce', 'verifyRequest'], { unique: true })
+@Index(['transactionId', 'verifyRequest'], { unique: true })
 export class IdaCredentialRequestToken {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
-  nonce: string;
-
-  @Column({ type: 'text' })
-  token: string;
+  transactionId: string;
 
   @ManyToOne(
     () => CredentialVerifyRequest,

@@ -68,7 +68,7 @@ export class IdaService implements ConnectorService {
     const headers = {
       headers: {
         'Content-Type': 'application/json', // afaik this one is not needed
-        'Authorization': `Basic `, // NOTE: The authentication credential should not be part a config file, and should not be checked in!
+        'Authorization': `Basic `, // NOTE: The authentication credential should be part a config file, and should not be checked in!
       }
     };
 
@@ -106,7 +106,7 @@ export class IdaService implements ConnectorService {
     const headers = {
       headers: {
         'Content-Type': 'application/json', // afaik this one is not needed
-        'Authorization': `Basic `, // NOTE: The authentication credential should not be part a config file, and should not be checked in!
+        'Authorization': `Basic `, // NOTE: The authentication credential should be part a config file, and should not be checked in!
       }
     };
 
@@ -135,7 +135,17 @@ export class IdaService implements ConnectorService {
 
     const qrPayload = `{"inviteURL":"${session.data.qrcode}","operationType":"verification", "documentName": "testdocument"}`;
     console.log(qrPayload);
-    console.log(session.data.transactionId);
+    const transactionId = session.data.transactionId;
+    console.log(transactionId);
+    // Store transactionId, linked to current requestId
+
+    const token = new IdaCredentialRequestToken();
+    token.transactionId = transactionId;
+    token.verifyRequest = verifyRequest;
+
+    // Save CredentialRequest because it is needed to verify a CredentialResponse token in the
+    // next step. See method handleVerifyCredentialDisclosure().
+    await this.tokenRepository.save(token);
 
     return {
       qr: await QRCode.toDataURL(qrPayload),
@@ -146,17 +156,20 @@ export class IdaService implements ConnectorService {
     verifyRequest: CredentialVerifyRequest,
     body: { jwt: string },
   ) {
-    // throw new NotImplementedException('Cannot verify IDA credentials yet');
     const apiUrl = "https://0xvvmwxd6e.execute-api.eu-west-1.amazonaws.com/dev/verification-status/";
     const headers = {
       headers: {
         'Content-Type': 'application/json', // afaik this one is not needed
-        'Authorization': `Basic `, // NOTE: The authentication credential should not be part a config file, and should not be checked in!
+        'Authorization': `Basic `, // NOTE: The authentication credential should be part a config file, and should not be checked in!
       }
     };
 
-    // This should be the transactionId received in handleVerifyCredentialRequest
-    const transactionId = "trx-956ba711-ff81-40a5-b9a9-49ba23ee7bdc";
+    // console.log(await this.tokenRepository.find());
+    const token = await this.tokenRepository.findOne({verifyRequest: verifyRequest});
+    const transactionId = token.transactionId;
+    
+    // console.log(token);
+    // console.log(transactionId);
 
     const session = await this.httpService
     .get(apiUrl+transactionId, headers)
@@ -164,11 +177,13 @@ export class IdaService implements ConnectorService {
 
     // console.log(session);
 
+    const status = session.data[0].status;
+    console.log(`"status": ${status}`);
+
     const data = session.data[0].details.predicateValues.credentialData;
     console.log(data);
 
     return data;
-    // return {"It": "works!"};
   }
 
   async findAllTypes() {

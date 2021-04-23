@@ -10,6 +10,7 @@ import { CredentialRequest } from './credential-request.interface';
 import { Organization } from '../organizations/organization.entity';
 import { CredentialType } from 'src/types/credential-type.entity';
 import { JolocomCredentialRequestToken } from 'src/connectors/jolocom/jolocom-credential-request-token.entity';
+import { IdaCredentialRequestToken } from 'src/connectors/ida/ida-credential-request-token.entity';
 import { Type } from 'class-transformer';
 import { IndyInvitation } from 'src/connectors/indy/indy-invitation.entity';
 
@@ -62,6 +63,12 @@ export class CredentialVerifyRequest implements CredentialRequest {
     token => token.verifyRequest,
   )
   jolocomTokens: JolocomCredentialRequestToken[];
+
+  @OneToMany(
+    () => IdaCredentialRequestToken,
+    token => token.verifyRequest,
+  )
+  idaTokens: IdaCredentialRequestToken[];
 
 
   static requestType: string;
