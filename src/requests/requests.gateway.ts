@@ -12,6 +12,7 @@ import {
   DecodeVerifyRequestPipe,
   DecodeIssueRequestPipe,
 } from './requests.pipe';
+import { ConnectorsService } from '../connectors/connectors.service';
 import { ResponseStatus } from 'src/connectors/response-status.enum';
 import { CredentialIssueRequest } from './credential-issue-request.entity';
 import { RequestsService } from './requests.service';
@@ -21,7 +22,10 @@ export class RequestsGateway {
   @WebSocketServer()
   server: Server;
 
-  constructor(private requestsService: RequestsService) {}
+  constructor(
+    private connectorsService: ConnectorsService,
+    private requestsService: RequestsService
+  ) {}
 
   @SubscribeMessage('message')
   handleMessage(@MessageBody() message: string): string {
@@ -81,6 +85,25 @@ export class RequestsGateway {
     } else {
       // FIXME: Raise error? We should probably only allow issue request to be
       // done manually.
+
+      console.log('Handling manual confirmation of success');
+
+      const service = this.connectorsService.getConnector(connector);
+      const data = await service.handleVerifyCredentialDisclosure(request,"");
+      // const data = {"demo": "test"}
+
+      const responseToken = this.requestsService.encodeVerifyRequestResponse(
+        request,
+        ResponseStatus.success,
+        connector,
+        data
+      );
+
+      this.sendRedirectResponse(
+        requestId,
+        ResponseStatus.success,
+        `${request.callbackUrl}${responseToken}`,
+      );
     }
   }
 

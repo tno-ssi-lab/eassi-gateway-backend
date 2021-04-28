@@ -221,7 +221,7 @@ export class JolocomService implements ConnectorService {
 
   /**
    * Construct a Jolocom CredentialReceive interaction token
-   * to actual issue the credential to the user's wallet app
+   * to actually issue the credential to the user's wallet app
    *
    * @param issueRequest the credential issue request
    * @param jolocomOfferResponse the Jolocom CredentialOfferResponse that is received from the user's wallet app
