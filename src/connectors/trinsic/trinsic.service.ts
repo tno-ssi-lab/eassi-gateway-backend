@@ -36,6 +36,11 @@ export class TrinsicService implements ConnectorService {
     throw new NotImplementedException('Cannot verify IDA credentials yet');
   }
 
+  async findAllSchemas() {
+    //return this.credentialsClient.listSchemas();
+    return false
+  }
+
   public async handleVerifyCredentialDisclosure(
     verifyRequest: CredentialVerifyRequest,
     body: { jwt: string },

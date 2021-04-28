@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body } from '@nestjs/common';
 import { TrinsicService } from './trinsic.service';
-//import { CreateTrinsicTypeDto } from './create-trinsic-type.dto';
+import { CreateTrinsicSchemaDto } from './create-trinsic-schema.dto';
 
 @Controller('api/connectors/trinsic')
 export class TrinsicController {
@@ -8,7 +8,7 @@ export class TrinsicController {
 
   @Get()
   index() {
-    //return this.trinsicService.findAllTypes();
+    //return this.TrinsicService.findAllTypes();
     return "Not implemented yet";
   }
 
