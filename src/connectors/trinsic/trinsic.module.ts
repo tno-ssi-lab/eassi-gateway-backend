@@ -1,7 +1,10 @@
-import { Module } from '@nestjs/common';
+import { HttpModule, Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { CredentialsServiceClient, ProviderServiceClient, WalletServiceClient, Credentials, ProviderCredentials } from '@trinsic/service-clients';
 import { TrinsicService } from './trinsic.service';
+import { TrinsicSchema } from './trinsic-schema.entity';
 import { TrinsicController } from './trinsic.controller';
+import { TrinsicInvitation } from './trinsic-invitation.entity';
 
 
 // Credentials API
@@ -18,8 +21,9 @@ const walletClient = new WalletServiceClient(
 
 
 @Module({
+  imports: [TypeOrmModule.forFeature([TrinsicSchema, TrinsicInvitation]), HttpModule],
   providers: [TrinsicService],
-  exports: [TrinsicService],
   controllers: [TrinsicController],
+  exports: [TrinsicService, TypeOrmModule],
 })
 export class TrinsicModule {}

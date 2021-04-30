@@ -1,15 +1,16 @@
 import { CredentialType } from 'src/types/credential-type.entity';
 import { PrimaryGeneratedColumn, Column, OneToMany, Entity } from 'typeorm';
 
-export interface IndySchemaResponse {
+export interface TrinsicSchemaResponse {
   schemaId: string;
+  definitionId: string;
   supportRevocation: boolean;
   version: string;
   name: string;
   attributes: string[];
 }
 
-export interface IndyCredDefResponse {
+export interface TrinsicCredDefResponse {
     definitionId: string;
 }
 
@@ -29,6 +30,12 @@ export class TrinsicSchema {
 
   @Column()
   supportRevocation: boolean;
+
+  @Column({ nullable: true })
+  trinsicSchemaId: string;
+
+  @Column({ nullable: true })
+  trinsicCredentialDefinitionId: string;
 
   @Column({ unique: true })
   tag: string;

@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { randomBytes } from 'crypto';
 
 export interface TrinsicConnectionResponse {
     connectionId: string;
@@ -20,6 +21,7 @@ export interface TrinsicConnectionResponse {
     multiParty: boolean;
   }
 
+  const TRINSIC_INVITATION_IDENTIFIER_BYTES = 6;
 
 @Entity()
 export class TrinsicInvitation {
@@ -35,4 +37,10 @@ export class TrinsicInvitation {
   @Column()
   multiParty: boolean;
 
+  @Column('simple-json')
+  connectionResponse: TrinsicConnectionResponse;
+
+  static randomIdentifier() {
+    return randomBytes(TRINSIC_INVITATION_IDENTIFIER_BYTES).toString('base64');
+  }
 }

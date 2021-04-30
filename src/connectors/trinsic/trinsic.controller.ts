@@ -8,15 +8,16 @@ export class TrinsicController {
 
   @Get()
   index() {
-    //return this.TrinsicService.findAllTypes();
-    return "Not implemented yet";
+    return this.trinsicService.findAllSchemas();
   }
 
   @Post()
-  //create(@Body() trinsicTypeData: CreateTrinsicTypeDto) {
- //   return this.trinsicService.createType(trinsicTypeData);
- // }
- create(@Body() trinsicTypeData: any) {
-  return "Post has not been implemented yet.";
+  create(@Body() trinsicSchemaData: CreateTrinsicSchemaDto) {
+  return this.trinsicService.createSchema(trinsicSchemaData);
+ }
+
+ @Post('invitation')
+ createInvitation() {
+   return this.trinsicService.createInvitation();
  }
 }
