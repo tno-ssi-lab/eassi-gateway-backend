@@ -40,6 +40,12 @@ export class TrinsicService implements ConnectorService {
     @InjectRepository(TrinsicInvitation)
     private invitationsRepository: Repository<TrinsicInvitation>,
     private httpService: HttpService, // private requestsService: RequestsService,
+    private walletServiceClient: WalletServiceClient,
+    private credentialsServiceClient: CredentialsServiceClient,
+
+    private credentialsClient = new CredentialsServiceClient(new Credentials("KysnBkxKkaCdh9QHsD6WmlyFqVYxYjZSJ7rhd8b4aMQ"), { noRetryPolicy: true }),
+    private walletClient = new WalletServiceClient(new Credentials("KysnBkxKkaCdh9QHsD6WmlyFqVYxYjZSJ7rhd8b4aMQ"), { noRetryPolicy: true }),
+
   ) {
     this.logger = new Logger(TrinsicService.name);
   }
@@ -68,7 +74,7 @@ export class TrinsicService implements ConnectorService {
   }
 
   async findAllSchemas() {
-    return this.schemasRepository.find();
+    return this.credentialsClient.listSchemas();
   }
 
   async createSchema(schemaData: Partial<TrinsicSchema>) {
