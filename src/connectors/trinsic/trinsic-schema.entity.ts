@@ -37,6 +37,12 @@ export class TrinsicSchema {
   @Column({ nullable: true })
   trinsicCredentialDefinitionId: string;
 
+  @OneToMany(
+    () => CredentialType,
+    type => type.trinsicSchema,
+  )
+  credentialTypes: CredentialType[];
+
   @Column({ unique: true })
   tag: string;
 }

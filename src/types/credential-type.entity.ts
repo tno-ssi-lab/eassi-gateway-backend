@@ -11,6 +11,7 @@ import { CredentialVerifyRequest } from 'src/requests/credential-verify-request.
 import { CredentialIssueRequest } from 'src/requests/credential-issue-request.entity';
 import { Type } from 'class-transformer';
 import { IndySchema } from 'src/connectors/indy/indy-schema.entity';
+import { TrinsicSchema } from 'src/connectors/trinsic/trinsic-schema.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
 @Entity()
@@ -40,6 +41,8 @@ export class CredentialType {
     eager: true,
   })
   indySchema: IndySchema;
+
+  trinsicSchema: TrinsicSchema;
 
   // TODO: Maybe use simplejson and make it an IrmaDisjunction?
   @Column({ nullable: true })

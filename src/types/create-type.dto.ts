@@ -18,5 +18,8 @@ export class CreateTypeDto {
   indySchemaId: number;
 
   @IsNumber()
+  trinsicSchemaId: number;
+
+  @IsNumber()
   organizationId: number;
 }
