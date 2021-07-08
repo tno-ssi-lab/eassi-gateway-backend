@@ -12,4 +12,9 @@ export class CreateTrinsicSchemaDto {
   @IsString({ each: true })
   @IsNotEmpty({ each: true })
   attributeNames: string[];
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  trinsicSchemaId?: string;
 }

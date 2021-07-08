@@ -80,7 +80,7 @@ export class TrinsicService implements ConnectorService {
     const schema = new TrinsicSchema();
     schema.name = schemaData.name;
     schema.version = schemaData.version;
-    schema.attributes = schemaData.attributes;
+    schema.attributeNames = schemaData.attributeNames;
 
     await this.createSchemaAndCredDef(schema, schemaData);
 
@@ -124,9 +124,10 @@ export class TrinsicService implements ConnectorService {
 
       const schemaResponse = await this.httpService
         .post<TrinsicSchemaResponse>(this.trinsicUrl('schemas'), {
-          attributes: schema.attributes,
-          schema_name: schema.name,
-          schema_version: schema.version,
+
+          attributeNames: schema.attributeNames,
+          name: schema.name,
+          version: schema.version,
         })
         .toPromise();
 
@@ -146,8 +147,8 @@ export class TrinsicService implements ConnectorService {
       const credDefResponse = await this.httpService
         .post<TrinsicCredDefResponse>(this.trinsicUrl('/credentials/v1/definitions/schemas'), {
           revocation_registry_size: 1000,
-          schema_id: schema.trinsicSchemaId,
-          support_revocation: false,
+          schemaId: schema.trinsicSchemaId,
+          supportRevocation: false,
           tag: 'default',
         })
         .toPromise();

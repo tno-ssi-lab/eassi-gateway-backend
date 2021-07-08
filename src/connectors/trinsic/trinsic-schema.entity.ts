@@ -3,15 +3,16 @@ import { PrimaryGeneratedColumn, Column, OneToMany, Entity } from 'typeorm';
 
 export interface TrinsicSchemaResponse {
   schemaId: string;
-  definitionId: string;
-  supportRevocation: boolean;
-  version: string;
   name: string;
-  attributes: string[];
+  version: string;
+  attributeNames: string[];
 }
 
 export interface TrinsicCredDefResponse {
+    schemaId: string;
     definitionId: string;
+    supportRevocation: boolean;
+    tag: string;
 }
 
 @Entity()
@@ -26,7 +27,7 @@ export class TrinsicSchema {
   version: string;
 
   @Column('simple-json')
-  attributes: string[];
+  attributeNames: string[];
 
   @Column()
   supportRevocation: boolean;
