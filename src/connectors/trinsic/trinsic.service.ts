@@ -122,18 +122,25 @@ export class TrinsicService implements ConnectorService {
     } else {
       this.logger.debug('Creating Trinsic schema', schema.name);
 
+      const headersRequest = {
+        'Authorization': 'KysnBkxKkaCdh9QHsD6WmlyFqVYxYjZSJ7rhd8b4aMQ',
+      };  
+
       const schemaResponse = await this.httpService
-        .post<TrinsicSchemaResponse>(this.trinsicUrl('schemas'), {
+        .post<TrinsicSchemaResponse>(this.trinsicUrl('/credentials/v1/definitions/schemas'), {
 
           attributeNames: schema.attributeNames,
           name: schema.name,
           version: schema.version,
+        },
+        {
+          headers: headersRequest
         })
         .toPromise();
 
-      this.logger.debug('Created Trinsic schema', schemaResponse.data.schemaId);
+      this.logger.debug('Created Trinsic schema', schemaResponse.data.toString());
 
-      schema.trinsicSchemaId = schemaResponse.data.schemaId;
+      schema.trinsicSchemaId = schemaResponse.data.toString();
 
       // If we don't have a schemaId we can't have a credDefId.
       schemaData.trinsicCredentialDefinitionId = null;
@@ -144,12 +151,17 @@ export class TrinsicService implements ConnectorService {
     } else {
       this.logger.debug('Creating Trinsic credDef', schema.trinsicSchemaId);
 
+      const headersRequest = {
+        'Authorization': 'KysnBkxKkaCdh9QHsD6WmlyFqVYxYjZSJ7rhd8b4aMQ',
+      };  
+
       const credDefResponse = await this.httpService
-        .post<TrinsicCredDefResponse>(this.trinsicUrl('/credentials/v1/definitions/schemas'), {
-          revocation_registry_size: 1000,
-          schemaId: schema.trinsicSchemaId,
+        .post<TrinsicCredDefResponse>(this.trinsicUrl('/credentials/v1/definitions/credentials/' + schema.trinsicSchemaId), {
           supportRevocation: false,
           tag: 'default',
+        },
+        {
+          headers: headersRequest
         })
         .toPromise();
 
