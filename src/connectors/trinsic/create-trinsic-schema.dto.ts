@@ -17,4 +17,9 @@ export class CreateTrinsicSchemaDto {
   @IsString()
   @IsNotEmpty()
   trinsicSchemaId?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  trinsicCredentialDefinitionId?: string;
 }
