@@ -76,6 +76,10 @@ export class TrinsicService implements ConnectorService {
     return this.credentialsServiceClient.listSchemas();
   }
 
+  async listCredentialDefinition() {
+    return this.credentialsServiceClient.listCredentialDefinitions();
+  }
+
   async createSchema(schemaData: Partial<TrinsicSchema>) {
     const schema = new TrinsicSchema();
     schema.name = schemaData.name;

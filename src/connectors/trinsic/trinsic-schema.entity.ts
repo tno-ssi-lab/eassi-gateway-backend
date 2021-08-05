@@ -29,10 +29,10 @@ export class TrinsicSchema {
   @Column('simple-json')
   attributeNames: string[];
 
-  @Column()
+  @Column({ nullable: true, default: null })
   supportRevocation: boolean;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true})
   trinsicSchemaId: string;
 
   @Column({ nullable: true })
@@ -44,6 +44,9 @@ export class TrinsicSchema {
   )
   credentialTypes: CredentialType[];
 
-  @Column({ unique: true })
+  //TODO: change to real unique tag
+  //Trinsic docs: "Unique tag to differentiate definitions of the same schema"
+  //@Column({ unique: true })
+  @Column({ nullable: true })
   tag: string;
 }

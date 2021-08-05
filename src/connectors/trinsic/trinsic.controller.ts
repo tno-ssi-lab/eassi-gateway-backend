@@ -11,6 +11,11 @@ export class TrinsicController {
     return this.trinsicService.findAllSchemas();
   }
 
+  @Get('credentials')
+  getCredentials() {
+    return this.trinsicService.listCredentialDefinition();
+  }
+
   @Post()
   create(@Body() trinsicSchemaData: CreateTrinsicSchemaDto) {
   return this.trinsicService.createSchema(trinsicSchemaData);
