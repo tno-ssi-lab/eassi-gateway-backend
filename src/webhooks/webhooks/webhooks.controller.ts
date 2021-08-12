@@ -9,7 +9,7 @@ import { ResponseStatus } from 'src/connectors/response-status.enum';
 import { RequestsGateway } from 'src/requests/requests.gateway';
 import { RequestsService } from 'src/requests/requests.service';
 
-@Controller('webhooks')
+@Controller('api/webhooks')
 export class WebhooksController {
   logger: Logger;
 
@@ -21,7 +21,7 @@ export class WebhooksController {
     this.logger = new Logger(WebhooksController.name);
   }
 
-  @Post('webhook/topic/present_proof')
+  @Post('indy/topic/present_proof')
   async webhookPresentProof(@Body() body: IndyPresentProofResponse) {
     this.debugWebhook('present_proof', body);
 
@@ -52,7 +52,7 @@ export class WebhooksController {
     );
   }
 
-  @Post('webhook/topic/issue_credential')
+  @Post('indy/topic/issue_credential')
   async webhookIssueCredential(@Body() body: IndyIssueCredentialResponse) {
     this.debugWebhook('issue_credential', body);
 
@@ -82,7 +82,7 @@ export class WebhooksController {
     );
   }
 
-  @Post('webhook/topic/:topic/')
+  @Post('indy/topic/:topic')
   webhook(@Param('topic') topic: string, @Body() body: any) {
     this.debugWebhook(topic, body);
   }
