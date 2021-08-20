@@ -73,7 +73,8 @@ export class TrinsicService implements ConnectorService {
   }
 
   async findAllSchemas() {
-    return this.credentialsServiceClient.listSchemas();
+    return this.schemasRepository.find();
+    //return this.credentialsServiceClient.listSchemas();
   }
 
   async listCredentialDefinition() {

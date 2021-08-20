@@ -42,6 +42,10 @@ export class CredentialType {
   })
   indySchema: IndySchema;
 
+  @ManyToOne(() => TrinsicSchema, (schema) => schema.credentialTypes, {
+    nullable: true,
+    eager: true,
+  })
   trinsicSchema: TrinsicSchema;
 
   // TODO: Maybe use simplejson and make it an IrmaDisjunction?
