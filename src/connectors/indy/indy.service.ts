@@ -122,6 +122,35 @@ export class IndyService implements ConnectorService {
     const schema = verifyRequest.type.indySchema;
 
     const requestedAttributes = {};
+    const requestedPredicates = {};
+
+    for (const pred in verifyRequest.predicates) {
+      console.log(pred);
+      requestedPredicates[pred] = {
+        name: verifyRequest.predicates[pred].name,
+        p_type: verifyRequest.predicates[pred].p_type,
+        p_value: verifyRequest.predicates[pred].p_value,
+        restrictions: [
+          {
+            cred_def_id: schema.indyCredentialDefinitionId,
+          },
+        ],
+      };
+    };
+    console.log(requestedPredicates);
+
+    // const requestedPredicates = {
+    //   old_enough: {
+    //     name: 'Date_of_birth',
+    //     p_type: '<=',
+    //     p_value: 20000101,
+    //     restrictions: [
+    //       {
+    //         cred_def_id: schema.indyCredentialDefinitionId,
+    //       },
+    //     ],
+    //   },
+    // };
 
     schema.attributes.forEach((att) => {
       requestedAttributes[att] = {
@@ -140,8 +169,8 @@ export class IndyService implements ConnectorService {
       proof_request: {
         name: 'Proof request',
         nonce: this.getNonce(),
-        requested_attributes: requestedAttributes,
-        requested_predicates: {},
+        requested_attributes: {},//requestedAttributes,
+        requested_predicates: requestedPredicates, //{},
         version: '1.0',
       },
       trace: false,

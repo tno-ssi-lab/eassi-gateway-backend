@@ -9,6 +9,7 @@ import {
 import { CredentialRequest } from './credential-request.interface';
 import { Organization } from '../organizations/organization.entity';
 import { CredentialType } from 'src/types/credential-type.entity';
+import { CredentialPredicates } from './credential-verify-request-predicates.dto';
 import { JolocomCredentialRequestToken } from 'src/connectors/jolocom/jolocom-credential-request-token.entity';
 import { IdaCredentialRequestToken } from 'src/connectors/ida/ida-credential-request-token.entity';
 import { Type } from 'class-transformer';
@@ -41,6 +42,9 @@ export class CredentialVerifyRequest implements CredentialRequest {
   @Column()
   @Generated('uuid')
   uuid: string;
+
+  @Column('simple-json')
+  predicates: CredentialPredicates;
 
   @Column()
   jwtId: string;
