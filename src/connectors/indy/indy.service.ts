@@ -139,29 +139,19 @@ export class IndyService implements ConnectorService {
     };
     console.log(requestedPredicates);
 
-    // const requestedPredicates = {
-    //   old_enough: {
-    //     name: 'Date_of_birth',
-    //     p_type: '<=',
-    //     p_value: 20000101,
-    //     restrictions: [
-    //       {
-    //         cred_def_id: schema.indyCredentialDefinitionId,
-    //       },
-    //     ],
-    //   },
-    // };
-
-    schema.attributes.forEach((att) => {
-      requestedAttributes[att] = {
-        name: att,
-        restrictions: [
-          {
-            cred_def_id: schema.indyCredentialDefinitionId,
-          },
-        ],
-      };
-    });
+    // Check for predicates, if none are set, then set request attributes
+    if (Object.keys(requestedPredicates).length == 0) {
+      schema.attributes.forEach((att) => {
+        requestedAttributes[att] = {
+          name: att,
+          restrictions: [
+            {
+              cred_def_id: schema.indyCredentialDefinitionId,
+            },
+          ],
+        };
+      });
+    }
 
     const requestData = {
       comment: verifyRequest.requestId,
@@ -169,8 +159,8 @@ export class IndyService implements ConnectorService {
       proof_request: {
         name: 'Proof request',
         nonce: this.getNonce(),
-        requested_attributes: {},//requestedAttributes,
-        requested_predicates: requestedPredicates, //{},
+        requested_attributes: requestedAttributes,
+        requested_predicates: requestedPredicates,
         version: '1.0',
       },
       trace: false,
