@@ -316,7 +316,7 @@ export class IndyService implements ConnectorService {
           revocation_registry_size: 1000,
           schema_id: schema.indySchemaId,
           support_revocation: false,
-          tag: 'default',
+          tag: schema.name,
         })
         .toPromise();
 
