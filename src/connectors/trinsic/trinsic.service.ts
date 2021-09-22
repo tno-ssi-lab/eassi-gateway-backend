@@ -5,6 +5,8 @@ import {
   NotImplementedException,
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
+import { randomBytes } from 'crypto';
+import { inspect } from 'util';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConnectorService } from '../connector-service.interface';
 import { Organization } from '../../organizations/organization.entity';
@@ -55,22 +57,98 @@ export class TrinsicService implements ConnectorService {
   }
 
   canIssueCredentialRequest(request: CredentialIssueRequest) {
-    // TODO
-    return false
+    if (!request.type) {
+      throw Error('Could not check type');
+    }
+
+    const schema = request.type.trinsicSchema;
+    if (!schema) {
+      return false;
+    }
+
+    return schema.trinsicCredentialDefinitionId.startsWith(
+      this.configService.getIndyDID(),
+    );
   }
 
   canVerifyCredentialRequest(request: CredentialVerifyRequest) {
-    // TODO
-    return false
+    if (!request.type) {
+      throw Error('Could not check type');
+    }
+
+    return !!request.type.trinsicSchema;
   }
 
-  async handleIssueCredentialRequest(request: CredentialIssueRequest) {
-    throw new NotImplementedException('Cannot issue IDA credentials yet');
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async handleIssueCredentialRequest(issueRequest: CredentialIssueRequest) {
+    // We handle this through a different channel, since we need a connectionId.
+    return {};
   }
 
-  async handleVerifyCredentialRequest(request: CredentialVerifyRequest) {
-    throw new NotImplementedException('Cannot verify IDA credentials yet');
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async handleVerifyCredentialRequest(verifyRequest: CredentialVerifyRequest) {
+    // We handle this through a different channel, since we need a connectionId.
+    return {};
   }
+
+  async handleVerifyCredentialRequestForConnection(
+    verifyRequest: CredentialVerifyRequest,
+    identifier: string,
+  ) {
+    const invitation = await this.getInvitationByIdentifier(identifier);
+    const schema = verifyRequest.type.trinsicSchema;
+
+    const requestedAttributes = {};
+
+    console.log("CONNECTIONID: " + invitation.connectionId);
+
+    schema.attributeNames.forEach((att) => {
+      requestedAttributes[att] = {
+        name: att,
+        restrictions: [
+          {
+            cred_def_id: schema.trinsicCredentialDefinitionId,
+          },
+        ],
+      };
+    });
+
+    const requestData = {
+      name: 'Proof request',
+      version: '1.0'
+    };
+
+    this.logger.debug('Asking for', inspect(requestData, false, 7));
+
+    return this.httpService
+      .post(this.trinsicUrl('credentials/v1/verifications/policy/connections/' + invitation.connectionId), requestData)
+      .toPromise();
+  }
+
+  async handleIssueCredentialRequestForConnection(
+    issueRequest: CredentialIssueRequest,
+    identifier: string,
+  ) {
+    const invitation = await this.getInvitationByIdentifier(identifier);
+    const schema = issueRequest.type.trinsicSchema;
+
+    const proposal = schema.attributeNames.map((att) => {
+      return {
+        name: att,
+        value: (issueRequest.data[att] || '').toString(),
+      };
+    });
+
+    this.logger.debug('Proposing', inspect(proposal, false, 7));
+
+    return this.httpService
+      .post(this.trinsicUrl('credentials/v1/credentials'), {
+        connectionId: invitation.connectionId,
+        definitionId: schema.trinsicCredentialDefinitionId,
+      })
+      .toPromise();
+  }
+
 
   async findAllSchemas() {
     return this.schemasRepository.find();
@@ -99,9 +177,9 @@ export class TrinsicService implements ConnectorService {
 
     const response = await this.httpService
       .post<TrinsicConnectionResponse>(
-        this.trinsicUrl('connections/create-invitation'),
+        this.trinsicUrl('credentials/v1/connections'),
         {
-          alias: invitation.connectionId,
+          connectionId: invitation.connectionId,
         },
       )
       .toPromise();
@@ -182,6 +260,10 @@ export class TrinsicService implements ConnectorService {
     return schema;
   }
 
+  async getInvitationByIdentifier(connectionId: string) {
+    return this.invitationsRepository.findOneOrFail({ connectionId });
+  }
+
   protected trinsicUrl(path: string) {
     return new URL(path, this.configService.getTrinsicUrl()).toString();
   }
@@ -191,5 +273,10 @@ export class TrinsicService implements ConnectorService {
     body: { jwt: string },
   ) {
     throw new NotImplementedException('Cannot verify Trinsic credentials yet');
+  }
+
+  protected getNonce(length = 3) {
+    // Not sure if we need a 0-9 digit nonce or not.
+    return parseInt(randomBytes(length).toString('hex'), 16).toString();
   }
 }

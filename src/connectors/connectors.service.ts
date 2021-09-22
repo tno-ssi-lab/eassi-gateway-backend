@@ -8,6 +8,7 @@ import { CONNECTOR_SERVICES } from './connectors.module';
 import { IndyService } from './indy/indy.service';
 import { IrmaService } from './irma/irma.service';
 import { JolocomService } from './jolocom/jolocom.service';
+import { TrinsicService } from './trinsic/trinsic.service';
 
 @Injectable()
 export class ConnectorsService {
@@ -17,10 +18,12 @@ export class ConnectorsService {
     private jolocomService: JolocomService,
     private irmaService: IrmaService,
     private indyService: IndyService,
+    private trinsicService: TrinsicService
   ) {
     this.connectors.push(this.jolocomService);
     this.connectors.push(this.irmaService);
     this.connectors.push(this.indyService);
+    this.connectors.push(this.trinsicService);
   }
 
   getConnector(name: string) {

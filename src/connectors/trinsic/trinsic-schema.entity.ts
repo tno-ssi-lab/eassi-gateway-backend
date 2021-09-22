@@ -49,4 +49,12 @@ export class TrinsicSchema {
   //@Column({ unique: true })
   @Column({ nullable: true })
   tag: string;
+
+  get schemaIssuerDid() {
+    return this.trinsicSchemaId.split(':')[0];
+  }
+
+  get credDefIssuerDid() {
+    return this.trinsicCredentialDefinitionId.split(':')[0];
+  }
 }
