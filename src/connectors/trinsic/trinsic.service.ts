@@ -100,8 +100,6 @@ export class TrinsicService implements ConnectorService {
 
     const requestedAttributes = {};
 
-    console.log("CONNECTIONID: " + invitation.connectionId);
-
     schema.attributeNames.forEach((att) => {
       requestedAttributes[att] = {
         name: att,
@@ -120,8 +118,12 @@ export class TrinsicService implements ConnectorService {
 
     this.logger.debug('Asking for', inspect(requestData, false, 7));
 
+    const headersRequest = {
+      'Authorization': 'KysnBkxKkaCdh9QHsD6WmlyFqVYxYjZSJ7rhd8b4aMQ',
+    };
+
     return this.httpService
-      .post(this.trinsicUrl('credentials/v1/verifications/policy/connections/' + invitation.connectionId), requestData)
+      .post(this.trinsicUrl('/credentials/v1/verifications/policy/connections/' + invitation.connectionId), requestData, {headers: headersRequest})
       .toPromise();
   }
 
@@ -141,10 +143,17 @@ export class TrinsicService implements ConnectorService {
 
     this.logger.debug('Proposing', inspect(proposal, false, 7));
 
+    const headersRequest = {
+      'Authorization': 'KysnBkxKkaCdh9QHsD6WmlyFqVYxYjZSJ7rhd8b4aMQ',
+    };  
+
     return this.httpService
-      .post(this.trinsicUrl('credentials/v1/credentials'), {
+      .post(this.trinsicUrl('/credentials/v1/credentials'), {
         connectionId: invitation.connectionId,
         definitionId: schema.trinsicCredentialDefinitionId,
+      },
+      {
+        headers: headersRequest
       })
       .toPromise();
   }
@@ -175,15 +184,23 @@ export class TrinsicService implements ConnectorService {
     const invitation = new TrinsicInvitation();
     invitation.connectionId = TrinsicInvitation.randomIdentifier();
 
+    const headersRequest = {
+      'Authorization': 'KysnBkxKkaCdh9QHsD6WmlyFqVYxYjZSJ7rhd8b4aMQ',
+    };  
+
     const response = await this.httpService
       .post<TrinsicConnectionResponse>(
-        this.trinsicUrl('credentials/v1/connections'),
+        this.trinsicUrl('/credentials/v1/connections'),
         {
           connectionId: invitation.connectionId,
         },
-      )
+        {
+          headers: headersRequest
+        })
       .toPromise();
     invitation.connectionId = response.data.connectionId;
+    invitation.name = response.data.connectionId;
+    invitation.multiParty = response.data.multiParty;
     invitation.connectionResponse = response.data;
     await this.invitationsRepository.save(invitation);
 
