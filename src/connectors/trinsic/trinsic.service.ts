@@ -96,20 +96,20 @@ export class TrinsicService implements ConnectorService {
     identifier: string,
   ) {
     const invitation = await this.getInvitationByIdentifier(identifier);
-    const schema = verifyRequest.type.trinsicSchema;
+    //const schema = verifyRequest.type.trinsicSchema;
 
-    const requestedAttributes = {};
+    //const requestedAttributes = {};
 
-    schema.attributeNames.forEach((att) => {
-      requestedAttributes[att] = {
-        name: att,
-        restrictions: [
-          {
-            cred_def_id: schema.trinsicCredentialDefinitionId,
-          },
-        ],
-      };
-    });
+    // schema.attributeNames.forEach((att) => {
+    //   requestedAttributes[att] = {
+    //     name: att,
+    //     restrictions: [
+    //       {
+    //         cred_def_id: schema.trinsicCredentialDefinitionId,
+    //       },
+    //     ],
+    //   };
+    // });
 
     const requestData = {
       name: 'Proof request',
@@ -122,15 +122,29 @@ export class TrinsicService implements ConnectorService {
       'Authorization': 'KysnBkxKkaCdh9QHsD6WmlyFqVYxYjZSJ7rhd8b4aMQ',
     };
 
-    return this.httpService
-      .post(this.trinsicUrl('/credentials/v1/verifications/policy/connections/' + invitation.connectionId), requestData, {headers: headersRequest})
+    console.log(invitation.connectionId);
+
+    //TODO: Needs to work using ConnectionID
+    // const response = await this.httpService
+    //   .post(this.trinsicUrl('/credentials/v1/verifications/policy/connections/' + invitation.connectionId), requestData, { headers: headersRequest })
+    //   .toPromise();
+
+    const verificationPolicy = await this.httpService
+      .post(this.trinsicUrl('/credentials/v1/verificationPolicies'), requestData, { headers: headersRequest })
       .toPromise();
+
+    console.log(verificationPolicy.data.policyId);
+
+    const response = await this.httpService
+      .put(this.trinsicUrl('/credentials/v1/verifications/policy/' + verificationPolicy.data.policyId), null, { headers: headersRequest })
+      .toPromise();
+
+    console.log(response.data.verificationRequestUrl);
+
+    return response;
   }
 
-  async handleIssueCredentialRequestForConnection(
-    issueRequest: CredentialIssueRequest,
-    identifier: string,
-  ) {
+  async handleIssueCredentialRequestForConnection(issueRequest: CredentialIssueRequest, identifier: string,) {
     const invitation = await this.getInvitationByIdentifier(identifier);
     const schema = issueRequest.type.trinsicSchema;
 
@@ -145,16 +159,16 @@ export class TrinsicService implements ConnectorService {
 
     const headersRequest = {
       'Authorization': 'KysnBkxKkaCdh9QHsD6WmlyFqVYxYjZSJ7rhd8b4aMQ',
-    };  
+    };
 
     return this.httpService
       .post(this.trinsicUrl('/credentials/v1/credentials'), {
         connectionId: invitation.connectionId,
         definitionId: schema.trinsicCredentialDefinitionId,
       },
-      {
-        headers: headersRequest
-      })
+        {
+          headers: headersRequest
+        })
       .toPromise();
   }
 
@@ -186,7 +200,7 @@ export class TrinsicService implements ConnectorService {
 
     const headersRequest = {
       'Authorization': 'KysnBkxKkaCdh9QHsD6WmlyFqVYxYjZSJ7rhd8b4aMQ',
-    };  
+    };
 
     const response = await this.httpService
       .post<TrinsicConnectionResponse>(
@@ -198,17 +212,18 @@ export class TrinsicService implements ConnectorService {
           headers: headersRequest
         })
       .toPromise();
+
     invitation.connectionId = response.data.connectionId;
     invitation.name = response.data.connectionId;
     invitation.multiParty = response.data.multiParty;
     invitation.connectionResponse = response.data;
     await this.invitationsRepository.save(invitation);
 
+    const verifyCred = await this.handleVerifyCredentialRequestForConnection(new CredentialVerifyRequest, invitation.connectionId);
+
     return {
       invitation,
-      qr: await QRCode.toDataURL(
-        JSON.stringify(invitation.connectionResponse.invitation),
-      ),
+      qr: await QRCode.toDataURL(verifyCred.data.verificationRequestUrl),
     };
   }
 
@@ -224,7 +239,7 @@ export class TrinsicService implements ConnectorService {
 
       const headersRequest = {
         'Authorization': 'KysnBkxKkaCdh9QHsD6WmlyFqVYxYjZSJ7rhd8b4aMQ',
-      };  
+      };
 
       const schemaResponse = await this.httpService
         .post<TrinsicSchemaResponse>(this.trinsicUrl('/credentials/v1/definitions/schemas'), {
@@ -233,9 +248,9 @@ export class TrinsicService implements ConnectorService {
           name: schema.name,
           version: schema.version,
         },
-        {
-          headers: headersRequest
-        })
+          {
+            headers: headersRequest
+          })
         .toPromise();
 
       this.logger.debug('Created Trinsic schema', schemaResponse.data.toString());
@@ -253,16 +268,16 @@ export class TrinsicService implements ConnectorService {
 
       const headersRequest = {
         'Authorization': 'KysnBkxKkaCdh9QHsD6WmlyFqVYxYjZSJ7rhd8b4aMQ',
-      };  
+      };
 
       const credDefResponse = await this.httpService
         .post<TrinsicCredDefResponse>(this.trinsicUrl('/credentials/v1/definitions/credentials/' + schema.trinsicSchemaId), {
           supportRevocation: false,
           tag: 'default',
         },
-        {
-          headers: headersRequest
-        })
+          {
+            headers: headersRequest
+          })
         .toPromise();
 
       this.logger.debug(
