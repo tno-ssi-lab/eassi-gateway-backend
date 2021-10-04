@@ -1,5 +1,10 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query } from '@nestjs/common';
 import { TrinsicService } from './trinsic.service';
+import { CredentialVerifyRequest } from 'src/requests/credential-verify-request.entity';
+import {
+  GetIssueRequestPipe,
+  GetVerifyRequestPipe,
+} from 'src/requests/requests.pipe';
 import { CreateTrinsicSchemaDto } from './create-trinsic-schema.dto';
 
 @Controller('api/connectors/trinsic')
@@ -25,4 +30,13 @@ export class TrinsicController {
  createInvitation() {
    return this.trinsicService.createInvitation();
  }
+
+ @Post('verify')
+ verify(@Body() { identifier }: { identifier: string },) {
+   return this.trinsicService.handleVerifyCredentialRequestForConnection(
+     new CredentialVerifyRequest,
+     identifier,
+   );
+ }
+
 }
