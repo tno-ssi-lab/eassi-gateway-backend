@@ -124,24 +124,15 @@ export class TrinsicService implements ConnectorService {
 
     console.log(invitation.connectionId);
 
-    //TODO: Needs to work using ConnectionID
-    return this.httpService
-      .post(this.trinsicUrl('/credentials/v1/verifications/policy/connections/' + invitation.connectionId), requestData, { headers: headersRequest })
-      .toPromise();
+    const response = await this.httpService
+      .post(this.trinsicUrl('/credentials/v1/verifications/policy/connections/' + invitation.connectionId), {
+        requestData
+      },
+        {
+          headers: headersRequest
+        }).toPromise();
 
-    // const verificationPolicy = await this.httpService
-    //   .post(this.trinsicUrl('/credentials/v1/verificationPolicies'), requestData, { headers: headersRequest })
-    //   .toPromise();
-
-    // console.log(verificationPolicy.data.policyId);
-
-    // const response = await this.httpService
-    //   .put(this.trinsicUrl('/credentials/v1/verifications/policy/' + verificationPolicy.data.policyId), null, { headers: headersRequest })
-    //   .toPromise();
-
-    // console.log(response.data.verificationRequestUrl);
-
-    // return response;
+    return response.data;
   }
 
   async handleIssueCredentialRequestForConnection(issueRequest: CredentialIssueRequest, identifier: string,) {
