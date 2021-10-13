@@ -139,8 +139,21 @@ export class IndyService implements ConnectorService {
     };
     console.log(requestedPredicates);
 
-    // Check for predicates, if none are set, then set request attributes
-    if (Object.keys(requestedPredicates).length == 0) {
+    verifyRequest.attributes.forEach((att) => {
+      console.log(att);
+      requestedAttributes[att] = {
+        name: att,
+        restrictions: [
+          {
+            cred_def_id: schema.indyCredentialDefinitionId,
+          },
+        ],
+      };
+    });
+    console.log(requestedAttributes);
+
+    // Check for predicates and attributes, if none are set, then set request all attributes
+    if (Object.keys(requestedPredicates).length == 0 && Object.keys(requestedAttributes).length == 0) {
       schema.attributes.forEach((att) => {
         requestedAttributes[att] = {
           name: att,

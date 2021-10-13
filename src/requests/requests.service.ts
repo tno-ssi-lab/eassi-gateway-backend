@@ -105,7 +105,7 @@ export class RequestsService {
       CredentialVerifyRequest,
       CredentialVerifyRequestData,
       VERIFY_REQUEST_SUBJECT,
-      ['predicates'],
+      ['attributes','predicates'],
     );
   }
 

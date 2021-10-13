@@ -68,7 +68,7 @@ export class IdaService implements ConnectorService {
     const headers = {
       headers: {
         'Content-Type': 'application/json', // afaik this one is not needed
-        'Authorization': `Basic `, // NOTE: The authentication credential should be part a config file, and should not be checked in!
+        'Authorization': `Basic NDpzWGxTMmtvNjN1NmlwTlpzazhnVGIy`, // NOTE: The authentication credential should be part a config file, and should not be checked in!
       }
     };
 
@@ -106,7 +106,7 @@ export class IdaService implements ConnectorService {
     const headers = {
       headers: {
         'Content-Type': 'application/json', // afaik this one is not needed
-        'Authorization': `Basic `, // NOTE: The authentication credential should be part a config file, and should not be checked in!
+        'Authorization': `Basic NDpzWGxTMmtvNjN1NmlwTlpzazhnVGIy`, // NOTE: The authentication credential should be part a config file, and should not be checked in!
       }
     };
 
@@ -160,7 +160,7 @@ export class IdaService implements ConnectorService {
     const headers = {
       headers: {
         'Content-Type': 'application/json', // afaik this one is not needed
-        'Authorization': `Basic `, // NOTE: The authentication credential should be part a config file, and should not be checked in!
+        'Authorization': `Basic NDpzWGxTMmtvNjN1NmlwTlpzazhnVGIy`, // NOTE: The authentication credential should be part a config file, and should not be checked in!
       }
     };
 
