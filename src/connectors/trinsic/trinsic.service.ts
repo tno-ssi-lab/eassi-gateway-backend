@@ -66,9 +66,7 @@ export class TrinsicService implements ConnectorService {
       return false;
     }
 
-    return schema.trinsicCredentialDefinitionId.startsWith(
-      this.configService.getIndyDID(),
-    );
+    return !!request.type.trinsicSchema;
   }
 
   canVerifyCredentialRequest(request: CredentialVerifyRequest) {
@@ -137,32 +135,36 @@ export class TrinsicService implements ConnectorService {
 
   async handleIssueCredentialRequestForConnection(issueRequest: CredentialIssueRequest, identifier: string,) {
     const invitation = await this.getInvitationByIdentifier(identifier);
-    const schema = issueRequest.type.trinsicSchema;
 
-    const proposal = schema.attributeNames.map((att) => {
-      return {
-        name: att,
-        value: (issueRequest.data[att] || '').toString(),
-      };
-    });
+    const schema = await this.findAllSchemas()
 
-    this.logger.debug('Proposing', inspect(proposal, false, 7));
+    console.log(schema[0].trinsicCredentialDefinitionId)
+
+    // const proposal = schema.attributeNames.map((att) => {
+    //   return {
+    //     name: att,
+    //     value: (issueRequest.data[att] || '').toString(),
+    //   };
+    // });
+
+    // this.logger.debug('Proposing', inspect(proposal, false, 7));
 
     const headersRequest = {
       'Authorization': 'KysnBkxKkaCdh9QHsD6WmlyFqVYxYjZSJ7rhd8b4aMQ',
     };
 
-    return this.httpService
+    const response = await this.httpService
       .post(this.trinsicUrl('/credentials/v1/credentials'), {
         connectionId: invitation.connectionId,
-        definitionId: schema.trinsicCredentialDefinitionId,
+        definitionId: schema[0].trinsicCredentialDefinitionId,
       },
         {
           headers: headersRequest
         })
       .toPromise();
-  }
 
+    return response.data;
+  }
 
   async findAllSchemas() {
     return this.schemasRepository.find();
