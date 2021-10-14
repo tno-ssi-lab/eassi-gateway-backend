@@ -12,7 +12,6 @@ import { ConnectorService } from '../connector-service.interface';
 import { Organization } from '../../organizations/organization.entity';
 import { CredentialIssueRequest } from 'src/requests/credential-issue-request.entity';
 import { CredentialVerifyRequest } from 'src/requests/credential-verify-request.entity';
-import { CredentialsServiceClient, ProviderServiceClient, WalletServiceClient, Credentials, ProviderCredentials } from '@trinsic/service-clients';
 import { sign, verify } from 'jsonwebtoken';
 import { TrinsicModule } from './trinsic.module';
 import * as QRCode from 'qrcode';
@@ -42,10 +41,6 @@ export class TrinsicService implements ConnectorService {
     @InjectRepository(TrinsicInvitation)
     private invitationsRepository: Repository<TrinsicInvitation>,
     private httpService: HttpService, // private requestsService: RequestsService,
-    private walletServiceClient: WalletServiceClient,
-    private credentialsServiceClient: CredentialsServiceClient,
-    //private credentialsClient = new CredentialsServiceClient(new Credentials("KysnBkxKkaCdh9QHsD6WmlyFqVYxYjZSJ7rhd8b4aMQ"), { noRetryPolicy: true }),
-    //private walletClient = new WalletServiceClient(new Credentials("KysnBkxKkaCdh9QHsD6WmlyFqVYxYjZSJ7rhd8b4aMQ"), { noRetryPolicy: true }),
 
   ) {
     this.logger = new Logger(TrinsicService.name);
@@ -117,7 +112,7 @@ export class TrinsicService implements ConnectorService {
     this.logger.debug('Asking for', inspect(requestData, false, 7));
 
     const headersRequest = {
-      'Authorization': 'KysnBkxKkaCdh9QHsD6WmlyFqVYxYjZSJ7rhd8b4aMQ',
+      'Authorization': this.configService.getTrinsicAPIKey(),
     };
 
     console.log(invitation.connectionId);
@@ -150,7 +145,7 @@ export class TrinsicService implements ConnectorService {
     // this.logger.debug('Proposing', inspect(proposal, false, 7));
 
     const headersRequest = {
-      'Authorization': 'KysnBkxKkaCdh9QHsD6WmlyFqVYxYjZSJ7rhd8b4aMQ',
+      'Authorization': this.configService.getTrinsicAPIKey(),
     };
 
     const response = await this.httpService
@@ -171,10 +166,6 @@ export class TrinsicService implements ConnectorService {
     //return this.credentialsServiceClient.listSchemas();
   }
 
-  async listCredentialDefinition() {
-    return this.credentialsServiceClient.listCredentialDefinitions();
-  }
-
   async createSchema(schemaData: Partial<TrinsicSchema>) {
     const schema = new TrinsicSchema();
     schema.name = schemaData.name;
@@ -192,7 +183,7 @@ export class TrinsicService implements ConnectorService {
     invitation.connectionId = TrinsicInvitation.randomIdentifier();
 
     const headersRequest = {
-      'Authorization': 'KysnBkxKkaCdh9QHsD6WmlyFqVYxYjZSJ7rhd8b4aMQ',
+      'Authorization': this.configService.getTrinsicAPIKey(),
     };
 
     const response = await this.httpService
@@ -212,11 +203,9 @@ export class TrinsicService implements ConnectorService {
     invitation.connectionResponse = response.data;
     await this.invitationsRepository.save(invitation);
 
-    const verifyCred = await this.handleVerifyCredentialRequestForConnection(new CredentialVerifyRequest, invitation.connectionId);
-
     return {
       invitation,
-      qr: await QRCode.toDataURL(verifyCred.data.verificationRequestUrl),
+      qr: await QRCode.toDataURL(invitation.connectionResponse.invitationUrl),
     };
   }
 
@@ -231,7 +220,7 @@ export class TrinsicService implements ConnectorService {
       this.logger.debug('Creating Trinsic schema', schema.name);
 
       const headersRequest = {
-        'Authorization': 'KysnBkxKkaCdh9QHsD6WmlyFqVYxYjZSJ7rhd8b4aMQ',
+        'Authorization': this.configService.getTrinsicAPIKey(),
       };
 
       const schemaResponse = await this.httpService
@@ -260,7 +249,7 @@ export class TrinsicService implements ConnectorService {
       this.logger.debug('Creating Trinsic credDef', schema.trinsicSchemaId);
 
       const headersRequest = {
-        'Authorization': 'KysnBkxKkaCdh9QHsD6WmlyFqVYxYjZSJ7rhd8b4aMQ',
+        'Authorization': this.configService.getTrinsicAPIKey(),
       };
 
       const credDefResponse = await this.httpService

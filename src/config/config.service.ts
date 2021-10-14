@@ -25,4 +25,8 @@ export class ConfigService {
   getIndyDID(): string {
     return process.env.ACAPY_INDY_DID || '';
   }
+
+  getTrinsicAPIKey(): string {
+    return process.env.TRINSIC_API_KEY || '';
+  }
 }
