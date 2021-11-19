@@ -12,28 +12,44 @@ import { IrmaModule } from './irma/irma.module';
 import { IrmaService } from './irma/irma.service';
 import { JolocomModule } from './jolocom/jolocom.module';
 import { JolocomService } from './jolocom/jolocom.service';
+import { GatacaModule } from './gataca/gataca.module';
+import { GatacaService } from './gataca/gataca.service';
 
 export const CONNECTOR_SERVICES = 'CONNECTOR_SERVICES';
 
 @Module({
-  imports: [JolocomModule, IdaModule, IrmaModule, IndyModule, TypeOrmModule.forFeature()],
+  imports: [
+    JolocomModule,
+    IdaModule,
+    IrmaModule,
+    IndyModule,
+    GatacaModule,
+    TypeOrmModule.forFeature(),
+  ],
   providers: [
     ConnectorsService,
     GetConnectorPipe,
     {
       provide: CONNECTOR_SERVICES,
-      useFactory: (jolocom, ida, irma, indy) => [jolocom, ida, irma, indy],
-      inject: [JolocomService, IdaService, IrmaService, IndyService],
+      useFactory: (...connectors) => connectors,
+      inject: [
+        JolocomService,
+        IdaService,
+        IrmaService,
+        IndyService,
+        GatacaService,
+      ],
     },
   ],
   exports: [
-    TypeOrmModule, // is this needed??
+    TypeOrmModule,
     ConnectorsService,
     GetConnectorPipe,
     JolocomModule,
     IdaModule,
     IrmaModule,
     IndyModule,
+    GatacaModule,
   ],
 })
 export class ConnectorsModule {}

@@ -9,6 +9,7 @@ import { IdaService } from './ida/ida.service';
 import { IndyService } from './indy/indy.service';
 import { IrmaService } from './irma/irma.service';
 import { JolocomService } from './jolocom/jolocom.service';
+import { GatacaService } from './gataca/gataca.service';
 
 @Injectable()
 export class ConnectorsService {
@@ -19,11 +20,13 @@ export class ConnectorsService {
     private idaService: IdaService,
     private irmaService: IrmaService,
     private indyService: IndyService,
+    private gatacaService: GatacaService,
   ) {
     this.connectors.push(this.jolocomService);
     this.connectors.push(this.idaService);
     this.connectors.push(this.irmaService);
     this.connectors.push(this.indyService);
+    this.connectors.push(this.gatacaService);
   }
 
   getConnector(name: string) {
