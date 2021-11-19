@@ -15,6 +15,10 @@ export class CreateTypeDto {
 
   @IsOptional()
   @IsNumber()
+  idaCredentialTypeId: number;
+
+  @IsOptional()
+  @IsNumber()
   indySchemaId: number;
 
   @IsOptional()

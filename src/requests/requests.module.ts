@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+// import { ConnectorsService } from '../connectors/connectors.service';
+
 import { OrganizationsModule } from '../organizations/organizations.module';
 import { TypesModule } from 'src/types/types.module';
 
@@ -14,14 +16,17 @@ import {
   GetVerifyRequestPipe,
 } from './requests.pipe';
 import { RequestsGateway } from './requests.gateway';
+import { ConnectorsModule } from 'src/connectors/connectors.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([CredentialIssueRequest, CredentialVerifyRequest]),
     OrganizationsModule,
     TypesModule,
+    ConnectorsModule
   ],
   providers: [
+    // ConnectorsService,
     RequestsService,
     DecodeIssueRequestPipe,
     GetIssueRequestPipe,

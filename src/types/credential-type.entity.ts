@@ -7,6 +7,7 @@ import {
 } from 'typeorm';
 import { Organization } from '../organizations/organization.entity';
 import { JolocomCredentialType } from 'src/connectors/jolocom/jolocom-credential-type.entity';
+import { IdaCredentialType } from 'src/connectors/ida/ida-credential-type.entity';
 import { CredentialVerifyRequest } from 'src/requests/credential-verify-request.entity';
 import { CredentialIssueRequest } from 'src/requests/credential-issue-request.entity';
 import { Type } from 'class-transformer';
@@ -35,6 +36,16 @@ export class CredentialType {
     },
   )
   jolocomType: JolocomCredentialType;
+
+  @ManyToOne(
+    () => IdaCredentialType,
+    (credentialType) => credentialType.credentialTypes,
+    {
+      nullable: true,
+      eager: true,
+    },
+  )
+  idaType: IdaCredentialType;
 
   @ManyToOne(() => IndySchema, (schema) => schema.credentialTypes, {
     nullable: true,

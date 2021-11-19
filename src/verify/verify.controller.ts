@@ -22,6 +22,7 @@ import { RequestsGateway } from '../requests/requests.gateway';
 import { RequestsService } from 'src/requests/requests.service';
 import { ResponseStatus } from 'src/connectors/response-status.enum';
 import { classToPlain } from 'class-transformer';
+import { IndyService } from 'src/connectors/indy/indy.service';
 
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller('api/verify')
@@ -30,6 +31,7 @@ export class VerifyController {
     private gateway: RequestsGateway,
     private connectorsService: ConnectorsService,
     private requestsService: RequestsService,
+    private indyService: IndyService,
   ) {}
 
   @Get()
@@ -41,7 +43,7 @@ export class VerifyController {
       verifyRequest: classToPlain(verifyRequest),
       availableConnectors: await this.connectorsService
         .availableVerifyConnectors(verifyRequest)
-        .then(cs => cs.map(c => c.name)),
+        .then((cs) => cs.map((c) => c.name)),
     };
   }
 
@@ -78,6 +80,19 @@ export class VerifyController {
       verifyRequest.requestId,
       ResponseStatus.success,
       `${verifyRequest.callbackUrl}${responseToken}`,
+    );
+  }
+
+  @Post('indy/verify')
+  verify(
+    @Query('verifyRequestId', GetVerifyRequestPipe)
+    verifyRequest: CredentialVerifyRequest,
+    @Body()
+    { identifier }: { identifier: string },
+  ) {
+    this.indyService.handleVerifyCredentialRequestForConnection(
+      verifyRequest,
+      identifier,
     );
   }
 }

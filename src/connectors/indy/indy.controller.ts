@@ -34,30 +34,4 @@ export class IndyController {
   createInvitation() {
     return this.indyService.createInvitation();
   }
-
-  // @Post('verify')
-  // verify(
-  //   @Query('verifyRequestId', GetVerifyRequestPipe)
-  //   verifyRequest: CredentialVerifyRequest,
-  //   @Body()
-  //   { identifier }: { identifier: string },
-  // ) {
-  //   this.indyService.handleVerifyCredentialRequestForConnection(
-  //     verifyRequest,
-  //     identifier,
-  //   );
-  // }
-
-  // @Post('issue')
-  // issue(
-  //   @Query('issueRequestId', GetIssueRequestPipe)
-  //   issueRequest: CredentialIssueRequest,
-  //   @Body()
-  //   { identifier }: { identifier: string },
-  // ) {
-  //   this.indyService.handleIssueCredentialRequestForConnection(
-  //     issueRequest,
-  //     identifier,
-  //   );
-  // }
 }

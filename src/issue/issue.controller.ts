@@ -8,6 +8,7 @@ import {
   ClassSerializerInterceptor,
   UseInterceptors,
 } from '@nestjs/common';
+import { classToPlain } from 'class-transformer';
 
 import {
   DecodeIssueRequestPipe,
@@ -18,7 +19,8 @@ import { ConnectorsService } from '../connectors/connectors.service';
 import { GetConnectorPipe } from '../connectors/get-connector.pipe';
 import { ConnectorService } from '../connectors/connector-service.interface';
 import { JolocomService } from 'src/connectors/jolocom/jolocom.service';
-import { classToPlain } from 'class-transformer';
+import { IdaService } from 'src/connectors/ida/ida.service';
+import { IndyService } from 'src/connectors/indy/indy.service';
 
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller('api/issue')
@@ -26,6 +28,8 @@ export class IssueController {
   constructor(
     private connectorsService: ConnectorsService,
     private jolocomService: JolocomService,
+    private indyService: IndyService,
+    private idaService: IdaService,
   ) {}
 
   @Get()
@@ -37,7 +41,7 @@ export class IssueController {
       issueRequest: classToPlain(issueRequest),
       availableConnectors: await this.connectorsService
         .availableIssueConnectors(issueRequest)
-        .then(cs => cs.map(c => c.name)),
+        .then((cs) => cs.map((c) => c.name)),
     };
   }
 
@@ -58,5 +62,18 @@ export class IssueController {
     token: string,
   ) {
     return this.jolocomService.handleIssueCredential(issueRequest, token);
+  }
+
+  @Post('indy/issue')
+  issue(
+    @Query('issueRequestId', GetIssueRequestPipe)
+    issueRequest: CredentialIssueRequest,
+    @Body()
+    { identifier }: { identifier: string },
+  ) {
+    this.indyService.handleIssueCredentialRequestForConnection(
+      issueRequest,
+      identifier,
+    );
   }
 }
