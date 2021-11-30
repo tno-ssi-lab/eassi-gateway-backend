@@ -26,7 +26,6 @@ import {
 } from './trinsic-schema.entity';
 import { ConfigService } from 'src/config/config.service';
 
-// import * as trinsicCredentials from './trinsic-credentials.json';
 
 @Injectable()
 export class TrinsicService implements ConnectorService {
@@ -35,6 +34,7 @@ export class TrinsicService implements ConnectorService {
 
   /* ConnectorService methods */
   constructor(
+
     private configService: ConfigService,
     @InjectRepository(TrinsicSchema)
     private schemasRepository: Repository<TrinsicSchema>,
@@ -135,8 +135,6 @@ export class TrinsicService implements ConnectorService {
       // [schema.attributeNames[1]]: "test",
     }, false, 7));
 
-    //TODO: send all attributeNames (now only first 2 are being send)
-    //TODO: remove hardcoded test string with real data
 
     const response = await this.httpService
       .post(this.trinsicUrl('/credentials/v1/credentials'), {
@@ -275,9 +273,34 @@ export class TrinsicService implements ConnectorService {
 
   public async handleVerifyCredentialDisclosure(
     verifyRequest: CredentialVerifyRequest,
-    body: { jwt: string },
+    data,
   ) {
-    throw new NotImplementedException('Cannot verify Trinsic credentials yet');
+    const headersRequest = {
+      'Authorization': this.configService.getTrinsicAPIKey(),
+    };
+
+    let verificationId = data.response.data.verificationId;
+    let verificationData = null;
+    let verificationState = "Requested";
+    let timedOut = false;
+    setTimeout(() => timedOut = true, 1000 * 60);
+
+    while (!timedOut && verificationState === "Requested") {
+      const response = await this.httpService
+        .get(this.trinsicUrl('/credentials/v1/verifications/' + verificationId),
+          {
+            headers: headersRequest
+          }).toPromise();
+
+      verificationState = response.data.state;
+      verificationData = response.data
+    }
+
+    if (verificationState === "Accepted") {
+      console.log(verificationData.proof)
+
+      return verificationData
+    }
   }
 
   protected getNonce(length = 3) {
