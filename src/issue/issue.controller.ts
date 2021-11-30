@@ -66,8 +66,21 @@ export class IssueController {
     return this.jolocomService.handleIssueCredential(issueRequest, token);
   }
 
-  @Post('trinsic/issue')
+  @Post('indy/issue')
   issue(
+    @Query('issueRequestId', GetIssueRequestPipe)
+    issueRequest: CredentialIssueRequest,
+    @Body()
+    { identifier }: { identifier: string },
+  ) {
+    this.indyService.handleIssueCredentialRequestForConnection(
+      issueRequest,
+      identifier,
+    );
+  }
+
+  @Post('trinsic/issue')
+  issueTrinsic(
     @Query('issueRequestId', GetIssueRequestPipe)
     issueRequest: CredentialIssueRequest,
     @Body() { identifier }: { identifier: string },) {
@@ -77,7 +90,7 @@ export class IssueController {
     );
   }
   @Post('trinsic/issuereponse')
-  issueResponse(
+  issueTrinsicResponse(
     @Query('issueRequestId', GetIssueRequestPipe)
     issueRequest: CredentialIssueRequest,
     @Body()

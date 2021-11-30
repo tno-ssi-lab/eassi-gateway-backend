@@ -130,11 +130,6 @@ export class TrinsicService implements ConnectorService {
     })
 
     this.logger.debug('Proposing', inspect(proposal, false, 7));
-    this.logger.debug('dict', inspect({
-      [schema.attributeNames[0]]: "test",
-      // [schema.attributeNames[1]]: "test",
-    }, false, 7));
-
 
     const response = await this.httpService
       .post(this.trinsicUrl('/credentials/v1/credentials'), {
@@ -296,12 +291,23 @@ export class TrinsicService implements ConnectorService {
       issueData = response.data
     }
 
-    console.log(issueState)
+    // Sometimes the state "Requested" pops up in between " Offered" and "Issued", not sure why...
+    setTimeout(() => timedOut = true, 1000 * 60);
+    while (!timedOut && issueState === "Requested") {
+      const response = await this.httpService
+        .get(this.trinsicUrl('/credentials/v1/credentials/' + credentialId),
+          {
+            headers: headersRequest
+          }).toPromise();
+
+      issueState = response.data.state;
+      issueData = response.data
+    }
+
+    console.log(issueState);
 
     if (issueState === "Issued") {
-      console.log(issueData.proof)
-
-      return issueData
+      return issueState
     }
   }
 
@@ -333,7 +339,7 @@ export class TrinsicService implements ConnectorService {
     if (verificationState === "Accepted") {
       console.log(verificationData.proof)
 
-      return verificationData.proof
+      return verificationData.proof[Object.keys(verificationData.proof)[0]].attributes
     }
   }
 
