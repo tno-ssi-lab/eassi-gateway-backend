@@ -271,6 +271,40 @@ export class TrinsicService implements ConnectorService {
     return new URL(path, this.configService.getTrinsicUrl()).toString();
   }
 
+  public async handleIssueCredentialDisclosure(
+    issueRequest: CredentialIssueRequest,
+    data
+    ) {
+    const headersRequest = {
+      'Authorization': this.configService.getTrinsicAPIKey(),
+    };
+
+    let credentialId = data.response.data.credentialId;
+    let issueData = null;
+    let issueState = "Offered";
+    let timedOut = false;
+    setTimeout(() => timedOut = true, 1000 * 60);
+
+    while (!timedOut && issueState === "Offered") {
+      const response = await this.httpService
+        .get(this.trinsicUrl('/credentials/v1/credentials/' + credentialId),
+          {
+            headers: headersRequest
+          }).toPromise();
+
+      issueState = response.data.state;
+      issueData = response.data
+    }
+
+    console.log(issueState)
+
+    if (issueState === "Issued") {
+      console.log(issueData.proof)
+
+      return issueData
+    }
+  }
+
   public async handleVerifyCredentialDisclosure(
     verifyRequest: CredentialVerifyRequest,
     data,
@@ -299,7 +333,7 @@ export class TrinsicService implements ConnectorService {
     if (verificationState === "Accepted") {
       console.log(verificationData.proof)
 
-      return verificationData
+      return verificationData.proof
     }
   }
 
