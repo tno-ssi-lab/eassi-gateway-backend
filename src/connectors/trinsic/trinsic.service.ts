@@ -89,27 +89,7 @@ export class TrinsicService implements ConnectorService {
     identifier: string,
   ) {
     const invitation = await this.getInvitationByIdentifier(identifier);
-    //const schema = verifyRequest.type.trinsicSchema;
-
-    //const requestedAttributes = {};
-
-    // schema.attributeNames.forEach((att) => {
-    //   requestedAttributes[att] = {
-    //     name: att,
-    //     restrictions: [
-    //       {
-    //         cred_def_id: schema.trinsicCredentialDefinitionId,
-    //       },
-    //     ],
-    //   };
-    // });
-
-    const requestData = {
-      name: 'Proof request',
-      version: '1.0'
-    };
-
-    this.logger.debug('Asking for', inspect(requestData, false, 7));
+    const schema = verifyRequest.type.trinsicSchema;
 
     const headersRequest = {
       'Authorization': this.configService.getTrinsicAPIKey(),
@@ -119,7 +99,12 @@ export class TrinsicService implements ConnectorService {
 
     const response = await this.httpService
       .post(this.trinsicUrl('/credentials/v1/verifications/policy/connections/' + invitation.connectionId), {
-        requestData
+        name: schema.name,
+        version: schema.version,
+        attributes: [{
+          attributeNames: schema.attributeNames,
+          policyName: schema.name
+        }]
       },
         {
           headers: headersRequest
@@ -131,27 +116,34 @@ export class TrinsicService implements ConnectorService {
   async handleIssueCredentialRequestForConnection(issueRequest: CredentialIssueRequest, identifier: string,) {
     const invitation = await this.getInvitationByIdentifier(identifier);
 
-    const schema = await this.findAllSchemas()
+    const schema = issueRequest.type.trinsicSchema;
 
-    console.log(schema[0].trinsicCredentialDefinitionId)
-
-    // const proposal = schema.attributeNames.map((att) => {
-    //   return {
-    //     name: att,
-    //     value: (issueRequest.data[att] || '').toString(),
-    //   };
-    // });
-
-    // this.logger.debug('Proposing', inspect(proposal, false, 7));
+    console.log(schema.trinsicCredentialDefinitionId)
 
     const headersRequest = {
       'Authorization': this.configService.getTrinsicAPIKey(),
     };
 
+    const proposal = {};
+    schema.attributeNames.forEach((att) => {
+      proposal[att] = (issueRequest.data[att] || '').toString();
+    })
+
+    this.logger.debug('Proposing', inspect(proposal, false, 7));
+    this.logger.debug('dict', inspect({
+      [schema.attributeNames[0]]: "test",
+      // [schema.attributeNames[1]]: "test",
+    }, false, 7));
+
+    //TODO: send all attributeNames (now only first 2 are being send)
+    //TODO: remove hardcoded test string with real data
+
     const response = await this.httpService
       .post(this.trinsicUrl('/credentials/v1/credentials'), {
         connectionId: invitation.connectionId,
-        definitionId: schema[0].trinsicCredentialDefinitionId,
+        definitionId: schema.trinsicCredentialDefinitionId,
+        automaticIssuance: true,
+        credentialValues: proposal,
       },
         {
           headers: headersRequest
@@ -163,7 +155,6 @@ export class TrinsicService implements ConnectorService {
 
   async findAllSchemas() {
     return this.schemasRepository.find();
-    //return this.credentialsServiceClient.listSchemas();
   }
 
   async createSchema(schemaData: Partial<TrinsicSchema>) {

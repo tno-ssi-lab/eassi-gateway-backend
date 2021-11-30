@@ -21,6 +21,7 @@ import { ConnectorService } from '../connectors/connector-service.interface';
 import { JolocomService } from 'src/connectors/jolocom/jolocom.service';
 import { IdaService } from 'src/connectors/ida/ida.service';
 import { IndyService } from 'src/connectors/indy/indy.service';
+import { TrinsicService } from 'src/connectors/trinsic/trinsic.service';
 
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller('api/issue')
@@ -30,6 +31,7 @@ export class IssueController {
     private jolocomService: JolocomService,
     private indyService: IndyService,
     private idaService: IdaService,
+    private trinsicService: TrinsicService,
   ) {}
 
   @Get()
@@ -72,6 +74,17 @@ export class IssueController {
     { identifier }: { identifier: string },
   ) {
     this.indyService.handleIssueCredentialRequestForConnection(
+      issueRequest,
+      identifier,
+    );
+  }
+
+  @Post('trinsic/issue')
+  issueTrinsic(
+    @Query('issueRequestId', GetIssueRequestPipe)
+    issueRequest: CredentialIssueRequest,
+    @Body() { identifier }: { identifier: string },) {
+    return this.trinsicService.handleIssueCredentialRequestForConnection(
       issueRequest,
       identifier,
     );
