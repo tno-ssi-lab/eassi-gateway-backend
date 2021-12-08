@@ -29,4 +29,12 @@ export class ConfigService {
   getTrinsicAPIKey(): string {
     return process.env.TRINSIC_API_KEY || '';
   }
+
+  getDatakeeperAPIUrl(): string {
+    return process.env.DATAKEEPER_API_URL || '';
+  }
+
+  getDatakeeperAPIKey(): string {
+    return process.env.DATAKEEPER_API_KEY || '';
+  }
 }

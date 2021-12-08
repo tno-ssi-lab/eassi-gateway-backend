@@ -64,11 +64,11 @@ export class IdaService implements ConnectorService {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async handleIssueCredentialRequest(issueRequest: CredentialIssueRequest) {
-    const apiUrl = "https://0xvvmwxd6e.execute-api.eu-west-1.amazonaws.com/dev/sessions";
+    const apiUrl = this.configService.getDatakeeperAPIUrl();
     const headers = {
       headers: {
         'Content-Type': 'application/json', // afaik this one is not needed
-        'Authorization': `Basic `, // NOTE: The authentication credential should be part a config file, and should not be checked in!
+        'Authorization': this.configService.getDatakeeperAPIKey(),
       }
     };
 
@@ -81,7 +81,8 @@ export class IdaService implements ConnectorService {
     const body = {
       toAttest: {
           [context]: {
-              "predicates": {"credentialData": data}  // Extra nesting in credentialData to avoid having to deal with individual predicate names for the time being
+              // "predicates": {"credentialData": data}  // Extra nesting in credentialData to avoid having to deal with individual predicate names for the time being
+              "predicates": data  // Extra nesting in credentialData to avoid having to deal with individual predicate names for the time being
           }
       },
       toVerify: [],
@@ -102,11 +103,11 @@ export class IdaService implements ConnectorService {
 
   async handleVerifyCredentialRequest(verifyRequest: CredentialVerifyRequest) {
     // throw new NotImplementedException('Cannot verify IDA credentials yet');
-    const apiUrl = "https://0xvvmwxd6e.execute-api.eu-west-1.amazonaws.com/dev/sessions";
+    const apiUrl = this.configService.getDatakeeperAPIUrl();
     const headers = {
       headers: {
         'Content-Type': 'application/json', // afaik this one is not needed
-        'Authorization': `Basic `, // NOTE: The authentication credential should be part a config file, and should not be checked in!
+        'Authorization': this.configService.getDatakeeperAPIKey(),
       }
     };
 
@@ -156,11 +157,11 @@ export class IdaService implements ConnectorService {
     verifyRequest: CredentialVerifyRequest,
     body: { jwt: string },
   ) {
-    const apiUrl = "https://0xvvmwxd6e.execute-api.eu-west-1.amazonaws.com/dev/verification-status/";
+    const apiUrl = this.configService.getDatakeeperAPIUrl();
     const headers = {
       headers: {
         'Content-Type': 'application/json', // afaik this one is not needed
-        'Authorization': `Basic `, // NOTE: The authentication credential should be part a config file, and should not be checked in!
+        'Authorization': this.configService.getDatakeeperAPIKey(),
       }
     };
 
