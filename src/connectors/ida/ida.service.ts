@@ -64,7 +64,7 @@ export class IdaService implements ConnectorService {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async handleIssueCredentialRequest(issueRequest: CredentialIssueRequest) {
-    const apiUrl = this.configService.getDatakeeperAPIUrl();
+    const apiUrl = this.configService.getDatakeeperAPIUrl() + '/sessions';
     const headers = {
       headers: {
         'Content-Type': 'application/json', // afaik this one is not needed
@@ -81,8 +81,8 @@ export class IdaService implements ConnectorService {
     const body = {
       toAttest: {
           [context]: {
-              // "predicates": {"credentialData": data}  // Extra nesting in credentialData to avoid having to deal with individual predicate names for the time being
-              "predicates": data  // Extra nesting in credentialData to avoid having to deal with individual predicate names for the time being
+              "revocable": false,
+              "predicates": {"credentialData": data}  // Extra nesting in credentialData to avoid having to deal with individual predicate names for the time being
           }
       },
       toVerify: [],
@@ -103,7 +103,7 @@ export class IdaService implements ConnectorService {
 
   async handleVerifyCredentialRequest(verifyRequest: CredentialVerifyRequest) {
     // throw new NotImplementedException('Cannot verify IDA credentials yet');
-    const apiUrl = this.configService.getDatakeeperAPIUrl();
+    const apiUrl = this.configService.getDatakeeperAPIUrl() + '/sessions';
     const headers = {
       headers: {
         'Content-Type': 'application/json', // afaik this one is not needed
@@ -123,7 +123,7 @@ export class IdaService implements ConnectorService {
               "predicate": "credentialData",  // Extra nesting in credentialData to avoid having to deal with individual predicate names for the time being
               "correlationGroup": "1",
               "allowedIssuers": [
-                  "did:eth:0x9e4751F9D87268108E0e824a714e225247731D0d"
+                this.configService.getDatakeeperIssuerDID()
               ]
           }
       ],
@@ -157,7 +157,7 @@ export class IdaService implements ConnectorService {
     verifyRequest: CredentialVerifyRequest,
     body: { jwt: string },
   ) {
-    const apiUrl = this.configService.getDatakeeperAPIUrl();
+    const apiUrl = this.configService.getDatakeeperAPIUrl() + '/verification-status/';
     const headers = {
       headers: {
         'Content-Type': 'application/json', // afaik this one is not needed

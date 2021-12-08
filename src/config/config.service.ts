@@ -37,4 +37,8 @@ export class ConfigService {
   getDatakeeperAPIKey(): string {
     return process.env.DATAKEEPER_API_KEY || '';
   }
+
+  getDatakeeperIssuerDID(): string {
+    return process.env.DATAKEEPER_ISSUER_DID || '';
+  }
 }
