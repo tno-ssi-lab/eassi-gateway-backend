@@ -184,6 +184,12 @@ export class IdaService implements ConnectorService {
     const data = session.data[0].details.predicateValues.credentialData;
     console.log(data);
 
+    const deleteSession = await this.httpService
+    .delete(apiUrl+transactionId, headers)
+    .toPromise();
+
+    console.log(deleteSession);
+
     return data;
   }
 
