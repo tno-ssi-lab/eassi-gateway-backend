@@ -12,8 +12,6 @@ import { ConnectorService } from '../connector-service.interface';
 import { Organization } from '../../organizations/organization.entity';
 import { CredentialIssueRequest } from 'src/requests/credential-issue-request.entity';
 import { CredentialVerifyRequest } from 'src/requests/credential-verify-request.entity';
-import { sign, verify } from 'jsonwebtoken';
-import { TrinsicModule } from './trinsic.module';
 import * as QRCode from 'qrcode';
 import {
   TrinsicConnectionResponse,
@@ -269,7 +267,7 @@ export class TrinsicService implements ConnectorService {
   public async handleIssueCredentialDisclosure(
     issueRequest: CredentialIssueRequest,
     data
-    ) {
+  ) {
     const headersRequest = {
       'Authorization': this.configService.getTrinsicAPIKey(),
     };
@@ -304,8 +302,6 @@ export class TrinsicService implements ConnectorService {
       issueData = response.data
     }
 
-    console.log(issueState);
-
     if (issueState === "Issued") {
       return issueState
     }
@@ -337,8 +333,7 @@ export class TrinsicService implements ConnectorService {
     }
 
     if (verificationState === "Accepted") {
-      console.log(verificationData.proof)
-
+      
       return verificationData.proof[Object.keys(verificationData.proof)[0]].attributes
     }
   }
