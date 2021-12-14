@@ -16,7 +16,7 @@ export class GatacaService implements ConnectorService {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   canIssueCredentialRequest(request: CredentialIssueRequest) {
-    return false;
+    return true;
   }
 
   canVerifyCredentialRequest(request: CredentialVerifyRequest) {
@@ -29,7 +29,7 @@ export class GatacaService implements ConnectorService {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async handleIssueCredentialRequest(issueRequest: CredentialIssueRequest) {
-    throw new NotImplementedException('Cannot issue Gataca credentials');
+    return {};  
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -42,6 +42,16 @@ export class GatacaService implements ConnectorService {
     verifyRequest: CredentialVerifyRequest,
     body: any,
   ) {
-    return body;
+    const result = {};
+
+    for (const vc of body?.verifiableCredential) {
+      for (const key of Object.keys(vc.credentialSubject)) {
+        if (key != "id") {
+          result[key] = vc.credentialSubject[key];
+        }
+      }
+    }
+
+    return result;
   }
 }
