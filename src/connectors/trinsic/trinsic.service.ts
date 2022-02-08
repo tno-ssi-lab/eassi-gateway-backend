@@ -91,6 +91,68 @@ export class TrinsicService implements ConnectorService {
     const invitation = await this.getInvitationByIdentifier(identifier);
     const schema = verifyRequest.type.trinsicSchema;
 
+    const requestedAttributes = Array();
+    const requestedPredicates = Array();
+
+    for (const pred in verifyRequest.predicates) {
+      console.log(pred);
+      requestedPredicates.push({
+        policyName: verifyRequest.predicates[pred].name,
+        attributeName: verifyRequest.predicates[pred].name,
+        predicateType: verifyRequest.predicates[pred].p_type,
+        predicateValue: verifyRequest.predicates[pred].p_value,
+        restrictions: [
+          {
+            cred_def_id: schema.trinsicCredentialDefinitionId,
+          },
+        ],
+      });
+    };
+    console.log(requestedPredicates);
+
+    verifyRequest.attributes.forEach((att) => {
+      console.log(att);
+      requestedAttributes.push(att);
+    });
+    console.log(requestedAttributes);
+
+    if (Object.keys(requestedPredicates).length == 0 && requestedAttributes.length == 0) {
+      schema.attributeNames.forEach((att) => {
+        requestedAttributes.push(att);
+      });
+    }
+    console.log(requestedAttributes);
+
+    // // Request selected attributes as described in https://docs.streetcred.id/docs/verifications
+    // verifyRequest.attributes.forEach((att) => {
+    //   console.log(att);
+    //   requestedAttributes.push({
+    //     policyName: att,
+    //     attributeNames: [att], // Stated as optional (https://docs.streetcred.id/docs/verifications), but appears to be required
+    //     restrictions: [
+    //       {
+    //         credentialDefinitionId: schema.trinsicCredentialDefinitionId,
+    //       },
+    //     ],
+    //   });
+    // });
+    // console.log(requestedAttributes);
+
+    // // Check for predicates and attributes, if none are set, then set request all attributes
+    // if (Object.keys(requestedPredicates).length == 0 && Object.keys(requestedAttributes).length == 0) {
+    //   schema.attributeNames.forEach((att) => {
+    //     requestedAttributes.push({
+    //       policyName: att,
+    //       attributeNames: [att], // Stated as optional (https://docs.streetcred.id/docs/verifications), but appears to be required
+    //       restrictions: [
+    //         {
+    //           credentialDefinitionId: schema.trinsicCredentialDefinitionId,
+    //         },
+    //       ],
+    //     });
+    //   });
+    // }
+
     const headersRequest = {
       'Authorization': this.configService.getTrinsicAPIKey(),
     };
@@ -101,14 +163,35 @@ export class TrinsicService implements ConnectorService {
       .post(this.trinsicUrl('/credentials/v1/verifications/policy/connections/' + invitation.connectionId), {
         name: schema.name,
         version: schema.version,
-        attributes: [{
-          attributeNames: schema.attributeNames,
-          policyName: schema.name
-        }]
+        ...(requestedAttributes.length !=0 && {attributes: [{
+          attributeNames: requestedAttributes,
+          policyName: schema.name,
+          restrictions: [
+            {
+              credentialDefinitionId: schema.trinsicCredentialDefinitionId,
+            },
+          ]
+        }]}),
+        // // Request selected attributes as described in 
+        // attributes: requestedAttributes,
+        // predicates: [{
+        //   policyName: 'ZKP',
+        //   attributeName: "age", // Name of attribute to check
+        //   predicateType: '>=',
+        //   predicateValue: 18,
+        //     restrictions: [
+        //     {
+        //       credentialDefinitionId: schema.trinsicCredentialDefinitionId,
+        //     },
+        //   ]
+        // }]
+        predicates: requestedPredicates,
       },
         {
           headers: headersRequest
         }).toPromise();
+
+    console.log(response.data)
 
     return response.data;
   }
