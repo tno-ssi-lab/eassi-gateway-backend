@@ -64,11 +64,11 @@ export class IdaService implements ConnectorService {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async handleIssueCredentialRequest(issueRequest: CredentialIssueRequest) {
-    const apiUrl = "https://0xvvmwxd6e.execute-api.eu-west-1.amazonaws.com/dev/sessions";
+    const apiUrl = this.configService.getDatakeeperAPIUrl() + '/sessions';
     const headers = {
       headers: {
         'Content-Type': 'application/json', // afaik this one is not needed
-        'Authorization': `Basic NDpzWGxTMmtvNjN1NmlwTlpzazhnVGIy`, // NOTE: The authentication credential should be part a config file, and should not be checked in!
+        'Authorization': this.configService.getDatakeeperAPIKey(),
       }
     };
 
@@ -81,6 +81,7 @@ export class IdaService implements ConnectorService {
     const body = {
       toAttest: {
           [context]: {
+              "revocable": false,
               "predicates": {"credentialData": data}  // Extra nesting in credentialData to avoid having to deal with individual predicate names for the time being
           }
       },
@@ -102,11 +103,11 @@ export class IdaService implements ConnectorService {
 
   async handleVerifyCredentialRequest(verifyRequest: CredentialVerifyRequest) {
     // throw new NotImplementedException('Cannot verify IDA credentials yet');
-    const apiUrl = "https://0xvvmwxd6e.execute-api.eu-west-1.amazonaws.com/dev/sessions";
+    const apiUrl = this.configService.getDatakeeperAPIUrl() + '/sessions';
     const headers = {
       headers: {
         'Content-Type': 'application/json', // afaik this one is not needed
-        'Authorization': `Basic NDpzWGxTMmtvNjN1NmlwTlpzazhnVGIy`, // NOTE: The authentication credential should be part a config file, and should not be checked in!
+        'Authorization': this.configService.getDatakeeperAPIKey(),
       }
     };
 
@@ -122,7 +123,7 @@ export class IdaService implements ConnectorService {
               "predicate": "credentialData",  // Extra nesting in credentialData to avoid having to deal with individual predicate names for the time being
               "correlationGroup": "1",
               "allowedIssuers": [
-                  "did:eth:0x9e4751F9D87268108E0e824a714e225247731D0d"
+                this.configService.getDatakeeperIssuerDID()
               ]
           }
       ],
@@ -156,11 +157,11 @@ export class IdaService implements ConnectorService {
     verifyRequest: CredentialVerifyRequest,
     body: { jwt: string },
   ) {
-    const apiUrl = "https://0xvvmwxd6e.execute-api.eu-west-1.amazonaws.com/dev/verification-status/";
+    const apiUrl = this.configService.getDatakeeperAPIUrl() + '/verification-status/';
     const headers = {
       headers: {
         'Content-Type': 'application/json', // afaik this one is not needed
-        'Authorization': `Basic NDpzWGxTMmtvNjN1NmlwTlpzazhnVGIy`, // NOTE: The authentication credential should be part a config file, and should not be checked in!
+        'Authorization': this.configService.getDatakeeperAPIKey(),
       }
     };
 
@@ -182,6 +183,12 @@ export class IdaService implements ConnectorService {
 
     const data = session.data[0].details.predicateValues.credentialData;
     console.log(data);
+
+    const deleteSession = await this.httpService
+    .delete(apiUrl+transactionId, headers)
+    .toPromise();
+
+    console.log(deleteSession);
 
     return data;
   }

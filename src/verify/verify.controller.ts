@@ -23,6 +23,7 @@ import { RequestsService } from 'src/requests/requests.service';
 import { ResponseStatus } from 'src/connectors/response-status.enum';
 import { classToPlain } from 'class-transformer';
 import { IndyService } from 'src/connectors/indy/indy.service';
+import { TrinsicService } from 'src/connectors/trinsic/trinsic.service';
 
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller('api/verify')
@@ -30,6 +31,7 @@ export class VerifyController {
   constructor(
     private gateway: RequestsGateway,
     private connectorsService: ConnectorsService,
+    private trinsicService: TrinsicService,
     private requestsService: RequestsService,
     private indyService: IndyService,
   ) {}
@@ -91,6 +93,17 @@ export class VerifyController {
     { identifier }: { identifier: string },
   ) {
     this.indyService.handleVerifyCredentialRequestForConnection(
+      verifyRequest,
+      identifier,
+    );
+  }
+
+  @Post('trinsic/verify')
+  verifyTrinsic(
+    @Query('verifyRequestId', GetVerifyRequestPipe)
+    verifyRequest: CredentialVerifyRequest,
+    @Body() { identifier }: { identifier: string },) {
+    return this.trinsicService.handleVerifyCredentialRequestForConnection(
       verifyRequest,
       identifier,
     );
