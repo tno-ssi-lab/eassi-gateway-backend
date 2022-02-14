@@ -43,10 +43,10 @@ export class CredentialVerifyRequest implements CredentialRequest {
   @Generated('uuid')
   uuid: string;
 
-  @Column("text", { array: true })
+  @Column("text", { array: true, default: () => "array[]::text[]" })
   attributes: string[];
 
-  @Column('simple-json')
+  @Column('simple-json', { default: "{}" })
   predicates: CredentialPredicates;
 
   @Column()
