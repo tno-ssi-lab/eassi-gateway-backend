@@ -183,7 +183,8 @@ export class IndyService implements ConnectorService {
 
     return this.httpService
       .post(this.indyUrl('present-proof/send-request'), requestData)
-      .toPromise();
+      .toPromise()
+      .catch((error: any)=>this.logger.debug(error));
   }
 
   async handleIssueCredentialRequestForConnection(
@@ -219,7 +220,8 @@ export class IndyService implements ConnectorService {
         schema_version: schema.version,
         trace: false,
       })
-      .toPromise();
+      .toPromise()
+      .catch((error: any)=>this.logger.debug(error));
   }
 
   async handleVerifyCredentialDisclosureFromWebhook(
