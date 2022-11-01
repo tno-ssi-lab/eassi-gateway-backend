@@ -41,4 +41,12 @@ export class ConfigService {
   getDatakeeperIssuerDID(): string {
     return process.env.DATAKEEPER_ISSUER_DID || '';
   }
+
+  getDatakeeperPreProdApiDID(): string {
+    return process.env.DATAKEEPER_PREPROD_API_DID || '';
+  }
+
+  getDatakeeperProdApiDID(): string {
+    return process.env.DATAKEEPER_PROD_API_DID || '';
+  }
 }

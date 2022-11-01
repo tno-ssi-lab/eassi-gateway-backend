@@ -123,7 +123,9 @@ export class IdaService implements ConnectorService {
               "predicate": "credentialData",  // Extra nesting in credentialData to avoid having to deal with individual predicate names for the time being
               "correlationGroup": "1",
               "allowedIssuers": [
-                this.configService.getDatakeeperIssuerDID()
+                this.configService.getDatakeeperIssuerDID(),
+                this.configService.getDatakeeperPreProdApiDID(),
+                this.configService.getDatakeeperProdApiDID()
               ]
           }
       ],
