@@ -7,6 +7,7 @@ import { JolocomCredentialType } from 'src/connectors/jolocom/jolocom-credential
 import { IdaCredentialType } from 'src/connectors/ida/ida-credential-type.entity';
 import { IndySchema } from 'src/connectors/indy/indy-schema.entity';
 import { TrinsicSchema } from 'src/connectors/trinsic/trinsic-schema.entity';
+import { WaltidSchema } from 'src/connectors/waltid/waltid-schema.entity';
 
 interface CreateData {
   organizationId: number | string;
@@ -14,6 +15,7 @@ interface CreateData {
   idaCredentialTypeId?: number | string;
   indySchemaId?: number | string;
   trinsicSchemaId?: number | string;
+  waltidSchemaId?: number | string;
   irmaType: string;
   type: string;
 }
@@ -33,6 +35,8 @@ export class TypesService {
     private readonly indySchemasRepository: Repository<IndySchema>,
     @InjectRepository(TrinsicSchema)
     private readonly trinsicSchemasRepository: Repository<TrinsicSchema>,
+    @InjectRepository(WaltidSchema)
+    private readonly waltidSchemasRepository: Repository<WaltidSchema>,
   ) {}
 
   async findAll() {
@@ -48,6 +52,7 @@ export class TypesService {
     idaCredentialTypeId,
     indySchemaId,
     trinsicSchemaId,
+    waltidSchemaId,
     irmaType,
     type,
   }: CreateData) {
@@ -66,6 +71,9 @@ export class TypesService {
     const trinsicSchema = trinsicSchemaId
       ? await this.trinsicSchemasRepository.findOneOrFail(trinsicSchemaId)
       : null;
+    const waltidSchema = waltidSchemaId
+      ? await this.waltidSchemasRepository.findOneOrFail(waltidSchemaId)
+      : null;
 
     const credentialType = new CredentialType();
 
@@ -76,6 +84,7 @@ export class TypesService {
     credentialType.idaType = idaCredentialType;
     credentialType.indySchema = indySchema;
     credentialType.trinsicSchema = trinsicSchema;
+    credentialType.waltidSchema = waltidSchema;
 
     return this.typesRespository.save(credentialType);
   }

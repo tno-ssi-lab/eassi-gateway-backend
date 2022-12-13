@@ -13,6 +13,7 @@ import { CredentialIssueRequest } from 'src/requests/credential-issue-request.en
 import { Type } from 'class-transformer';
 import { IndySchema } from 'src/connectors/indy/indy-schema.entity';
 import { TrinsicSchema } from 'src/connectors/trinsic/trinsic-schema.entity';
+import { WaltidSchema } from 'src/connectors/waltid/waltid-schema.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
 @Entity()
@@ -58,6 +59,12 @@ export class CredentialType {
     eager: true,
   })
   trinsicSchema: TrinsicSchema;
+
+  @ManyToOne(() => WaltidSchema, (schema) => schema.credentialTypes, {
+    nullable: true,
+    eager: true,
+  })
+  waltidSchema: WaltidSchema;
 
   // TODO: Maybe use simplejson and make it an IrmaDisjunction?
   @Column({ nullable: true })

@@ -24,6 +24,7 @@ import { ResponseStatus } from 'src/connectors/response-status.enum';
 import { classToPlain } from 'class-transformer';
 import { IndyService } from 'src/connectors/indy/indy.service';
 import { TrinsicService } from 'src/connectors/trinsic/trinsic.service';
+import { WaltidService } from 'src/connectors/waltid/waltid.service';
 
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller('api/verify')
@@ -32,6 +33,7 @@ export class VerifyController {
     private gateway: RequestsGateway,
     private connectorsService: ConnectorsService,
     private trinsicService: TrinsicService,
+    private waltidService: WaltidService,
     private requestsService: RequestsService,
     private indyService: IndyService,
   ) {}
@@ -104,6 +106,17 @@ export class VerifyController {
     verifyRequest: CredentialVerifyRequest,
     @Body() { identifier }: { identifier: string },) {
     return this.trinsicService.handleVerifyCredentialRequestForConnection(
+      verifyRequest,
+      identifier,
+    );
+  }
+
+  @Post('waltid/verify')
+  verifyWaltid(
+    @Query('verifyRequestId', GetVerifyRequestPipe)
+    verifyRequest: CredentialVerifyRequest,
+    @Body() { identifier }: { identifier: string },) {
+    return this.waltidService.handleVerifyCredentialRequestForConnection(
       verifyRequest,
       identifier,
     );

@@ -1,23 +1,30 @@
 import {
   IsNotEmpty,
   IsString,
-  IsNotEmptyObject,
-  IsArray,
+  Matches,
+  IsOptional
 } from 'class-validator';
-import { BaseMetadata } from 'cred-types-jolocom-core/js/types';
 
-export class CreateJolocomTypeDto {
-  @IsString()
-  @IsNotEmpty()
-  type: string;
-
+export class CreateWaltidSchemaDto {
   @IsString()
   @IsNotEmpty()
   name: string;
 
-  @IsArray()
-  context: BaseMetadata['context'];
+  @IsString()
+  @Matches(/^\d+(\.\d+)*$/)
+  version: string;
 
-  @IsNotEmptyObject()
-  claimInterface: BaseMetadata['claimInterface'];
+  @IsString({ each: true })
+  @IsNotEmpty({ each: true })
+  attributeNames: string[];
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  waltidSchemaId?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  waltidCredentialDefinitionId?: string;
 }

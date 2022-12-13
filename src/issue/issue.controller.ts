@@ -22,6 +22,7 @@ import { JolocomService } from 'src/connectors/jolocom/jolocom.service';
 import { IdaService } from 'src/connectors/ida/ida.service';
 import { IndyService } from 'src/connectors/indy/indy.service';
 import { TrinsicService } from 'src/connectors/trinsic/trinsic.service';
+import { WaltidService } from 'src/connectors/waltid/waltid.service';
 
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller('api/issue')
@@ -32,6 +33,7 @@ export class IssueController {
     private indyService: IndyService,
     private idaService: IdaService,
     private trinsicService: TrinsicService,
+    private waltidService: WaltidService
   ) {}
 
   @Get()
@@ -98,6 +100,30 @@ export class IssueController {
 
       
     return this.trinsicService.handleIssueCredentialDisclosure(
+      issueRequest,
+      body
+    );
+  }
+
+  @Post('waltid/issue')
+  issueWaltid(
+    @Query('issueRequestId', GetIssueRequestPipe)
+    issueRequest: CredentialIssueRequest,
+    @Body() { identifier }: { identifier: string },) {
+    return this.waltidService.handleIssueCredentialRequestForConnection(
+      issueRequest,
+      identifier,
+    );
+  }
+  @Post('waltid/issuereponse')
+  issueWaltidResponse(
+    @Query('issueRequestId', GetIssueRequestPipe)
+    issueRequest: CredentialIssueRequest,
+    @Body()
+    body: unknown,){
+
+      
+    return this.waltidService.handleIssueCredentialDisclosure(
       issueRequest,
       body
     );

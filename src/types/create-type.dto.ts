@@ -25,6 +25,10 @@ export class CreateTypeDto {
   @IsNumber()
   trinsicSchemaId: number;
 
+  @IsOptional()
+  @IsNumber()
+  waltidSchemaId: number;
+
   @IsNumber()
   organizationId: number;
 }
