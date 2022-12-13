@@ -18,12 +18,12 @@ export class ConfigService {
     return process.env.ACAPY_ADMIN_URL || 'http://acapy:9001';
   }
 
-  getTrinsicUrl(): string {
-    return process.env.TRINSIC_ADMIN_URL || 'https://api.trinsic.id';
-  }
-
   getIndyDID(): string {
     return process.env.ACAPY_INDY_DID || '';
+  }
+
+  getTrinsicUrl(): string {
+    return process.env.TRINSIC_ADMIN_URL || 'https://api.trinsic.id';
   }
 
   getTrinsicAPIKey(): string {
@@ -48,5 +48,13 @@ export class ConfigService {
 
   getDatakeeperProdApiDID(): string {
     return process.env.DATAKEEPER_PROD_API_DID || '';
+  }
+
+  getWaltidUrl(): string {
+    return process.env.WALTID_ADMIN_URL || 'https://signatory.ssikit.walt.id/api-routes';
+  } // API for Signatory, Custodian and Auditor?
+
+  getWaltidAPIKey(): string {
+    return process.env.WALTID_API_KEY || '';
   }
 }
