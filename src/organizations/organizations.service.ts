@@ -39,11 +39,11 @@ export class OrganizationsService {
     organization.name = name;
     organization.sharedSecret = Organization.randomSecret();
     await this.organizationsRepository.save(organization);
+    this.logger.debug(`Created organization: ${JSON.stringify(organization)}`);
 
     // TODO: Move to queue if needed.
     await this.connectorsService.registerOrganization(organization);
 
-    this.logger.debug(`Created organization (id: ${organization.id})`);
     // return organization;
     return {
       "id": organization.id,
