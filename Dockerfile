@@ -13,7 +13,11 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # Install all Packages
-RUN npm install
+RUN npm ci
+
+# Patch jolocom lib to allow manual transfer of funds to organization
+COPY ./helper.js.patch .
+RUN patch -p1 < ./helper.js.patch
 
 # Copy all other source code to work directory
 COPY . ./
@@ -21,4 +25,4 @@ COPY . ./
 EXPOSE 3000
 
 # need to build at runtime because config.ts might be replaced/mounted
-CMD [ "npm", "run", "start:dev" ]
+CMD [ "npm", "run", "start:debug" ]

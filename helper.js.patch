@@ -1,0 +1,35 @@
+--- ./node_modules/jolocom-lib/js/utils/helper.js	2023-03-15 16:23:35.550819991 +0100
++++ ./helper.js	2023-03-15 16:26:41.927582984 +0100
+@@ -17,7 +17,25 @@
+     return keyId.substring(0, keyId.indexOf('#'));
+ }
+ exports.keyIdToDid = keyIdToDid;
++const countdown = async (countdown) => {
++    console.log('Waiting for funds (60 seconds)...');
++    return new Promise((resolve) => {
++        const interval = setInterval(() => {
++            countdown -= 1;
++            if (countdown == 0) {
++                console.log('Continuing...');
++                resolve();
++                clearInterval(interval);
++            }
++        }, 1000);
++    });
++};
+ function fuelKeyWithEther(publicKey) {
++    console.log(
++        'Please manually fund the following address: ',
++        exports.publicKeyToAddress(publicKey),
++    );
++    return countdown(60);
+     return node_fetch_1.default('https://faucet.jolocom.com/request/', {
+         method: 'POST',
+         body: JSON.stringify({ address: exports.publicKeyToAddress(publicKey) }),
+@@ -45,4 +63,4 @@
+         encryptionKeyId: encKeyRef,
+     };
+ };
+-//# sourceMappingURL=helper.js.map
+\ No newline at end of file
++//# sourceMappingURL=helper.js.map
