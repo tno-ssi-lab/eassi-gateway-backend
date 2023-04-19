@@ -59,7 +59,7 @@ export class JolocomService implements ConnectorService {
   /* ConnectorService methods */
 
   async registerOrganization(organization: Organization) {
-    await this.createWalletForOrganization(organization);
+    // await this.createWalletForOrganization(organization);
     // await this.fuelWallet(wallet);
     // await this.registerWallet(wallet);
   }
